@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>AnatoVi 3D - Giải Phẫu Học 3D Chuyên Nghiệp</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #070a10;
+      --bg-surface: #0c121e;
+      --panel-bg: rgba(12, 18, 30, 0.78);
+      --panel-border: rgba(255, 255, 255, 0.09);
+      --panel-border-hover: rgba(0, 210, 255, 0.4);
+      --accent: #00d2ff;
+      --accent-glow: rgba(0, 210, 255, 0.35);
+      --highlight-yellow: #facc15;
+      --text-main: #f8fafc;
+      --text-muted: #8492a6;
+      --text-dim: #4b5563;
+      --danger: #ff4757;
+      --success: #10b981;
+      --bottom-bar-bg: rgba(11, 16, 26, 0.90);
+      
+      /* System Identity Colors */
+      --sys-skeletal: #e2d5a8;
+      --sys-connective: #38bdf8;
+      --sys-muscular: #f43f5e;
+      --sys-arterial: #ef4444;
+      --sys-venous: #3b82f6;
+      --sys-lymphatic: #10b981;
+      --sys-nervous: #f59e0b;
+      --sys-respiratory: #06b6d4;
+      --sys-digestive: #f97316;
+      --sys-endocrine: #8b5cf6;
+      --sys-urogenital: #a855f7;
+      --sys-integumentary: #ec4899;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #141c2c 0%, #06090e 100%);
+      color: var(--text-main);
+    }
+
+    #webgl-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    /* ======================================================== */
+    /* GLASSMORPHISM DESIGN TOKENS                              */
+    /* ======================================================== */
+    .glass {
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /* ======================================================== */
+    /* TOP NAVIGATION OMNIBAR                                   */
+    /* ======================================================== */
+    header {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      height: 56px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      transition: all 0.3s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00d2ff 0%, #0055ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.05rem;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .brand-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .brand-name {
+      background: linear-gradient(90deg, #ffffff 30%, #bde6ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .brand-pro-badge {
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      padding: 2px 6px;
+      border-radius: 6px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    /* Search Omnibar */
+    .search-box {
+      position: relative;
+      width: 380px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 0 65px 0 36px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.09);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .search-input::placeholder {
+      color: #64748b;
+      font-size: 0.82rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+
+    .search-input:focus ~ .search-icon {
+      color: var(--accent);
+    }
+
+    .search-kbd-hint {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #64748b;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 5px;
+      pointer-events: none;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 46px;
+      left: 0;
+      right: 0;
+      background: rgba(11, 16, 26, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      max-height: 320px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.8);
+      padding: 6px;
+    }
+
+    .search-item {
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .search-item:hover {
+      background: rgba(0, 210, 255, 0.15);
+    }
+
+    .search-item-vi {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.86rem;
+    }
+
+    .search-item-en {
+      font-size: 0.74rem;
+      color: #94a3b8;
+    }
+
+    /* Top Controls & View Presets */
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .view-presets {
+      display: flex;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .view-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .view-btn.active {
+      color: #fff;
+      background: rgba(0, 210, 255, 0.2);
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+
+    .view-btn-icon-only {
+      padding: 6px 9px;
+      font-size: 0.85rem;
+    }
+
+    /* ======================================================== */
+    /* RIGHT INSPECTOR PANEL (CHI TIẾT CƠ QUAN)                */
+    /* ======================================================== */
+    .inspector-panel {
+      position: absolute;
+      top: 80px;
+      right: 16px;
+      width: 360px;
+      z-index: 25;
+      padding: 22px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      max-height: calc(100vh - 170px);
+      overflow-y: auto;
+      animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-left: 3px solid var(--accent);
+    }
+
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .organ-title-vi {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      letter-spacing: -0.3px;
+    }
+
+    .organ-title-latin {
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--highlight-yellow);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .organ-title-en {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 71, 87, 0.2);
+      border-color: rgba(255, 71, 87, 0.4);
+      color: #ff4757;
+      transform: rotate(90deg);
+    }
+
+    .system-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(0, 210, 255, 0.1);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      color: var(--accent);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      align-self: flex-start;
+      letter-spacing: 0.3px;
+    }
+
+    .organ-desc-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 11px;
+      padding: 14px;
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: #d1d5db;
+    }
+
+    /* Inspector Actions */
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 9px;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(0, 210, 255, 0.2);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .action-btn.danger:hover {
+      background: rgba(255, 71, 87, 0.25);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    /* ======================================================== */
+    /* FLOATING BOTTOM 12 SYSTEMS DOCK                          */
+    /* ======================================================== */
+    .ca-bottom-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 28px);
+      max-width: 1400px;
+      height: 70px;
+      background: var(--bottom-bar-bg);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px;
+      z-index: 20;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      overflow: visible;
+    }
+
+    .ca-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      padding: 6px 8px;
+      border-radius: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      min-width: 72px;
+    }
+
+    .ca-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-3px);
+    }
+
+    .ca-status {
+      font-size: 0.64rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+
+    .ca-icon-wrap {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.45;
+      transition: all 0.2s ease;
+    }
+
+    .ca-icon-wrap svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+      transition: transform 0.2s;
+    }
+
+    .ca-item:hover .ca-icon-wrap svg {
+      transform: scale(1.15);
+    }
+
+    .ca-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 2px;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+
+    /* Active States */
+    .ca-item.active .ca-status {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .ca-item.active .ca-icon-wrap {
+      opacity: 1.0;
+      filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6));
+    }
+
+    .ca-item.active .ca-label {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Stepper Pills */
+    .ca-stepper-pill {
+      position: absolute;
+      bottom: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      background: rgba(12, 17, 28, 0.97);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 210, 255, 0.25);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 5px;
+      gap: 4px;
+      z-index: 40;
+      backdrop-filter: blur(16px);
+      animation: popPill 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popPill {
+      from { opacity: 0; transform: translate(-50%, 8px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    .ca-item#btn-sys-muscular:hover .ca-stepper-pill,
+    .ca-item#btn-sys-arterial:hover .ca-stepper-pill,
+    .ca-item#btn-sys-venous:hover .ca-stepper-pill {
+      display: flex !important;
+    }
+
+    .ca-stepper-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .ca-stepper-btn:hover {
+      background: var(--accent);
+      color: #070a10;
+      transform: scale(1.1);
+    }
+
+    .ca-stepper-divider {
+      width: 22px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ======================================================== */
+    /* STARTUP HUB OVERLAY (MODELS & ATLAS)                     */
+    /* ======================================================== */
+    #hub-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 30%, rgba(18, 25, 40, 0.98) 0%, rgba(6, 9, 14, 0.99) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    #hub-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .hub-close-btn {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .hub-close-btn:hover {
+      background: rgba(255, 71, 87, 0.25);
+      border-color: #ff4757;
+      color: #ff4757;
+      transform: rotate(90deg);
+    }
+
+    .hub-modal {
+      max-width: 860px;
+      width: 92%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: hubPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes hubPop {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .hub-title-wrap {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .hub-brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 16px;
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      border-radius: 20px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .hub-title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      background: linear-gradient(135deg, #ffffff 30%, #b8e0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .hub-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .hub-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 360px);
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .hub-card {
+      height: 400px;
+      background: #121824;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .hub-card:hover {
+      transform: translateY(-10px);
+      border-color: rgba(0, 210, 255, 0.8);
+      box-shadow: 0 28px 60px rgba(0, 210, 255, 0.25), 0 0 25px rgba(0, 210, 255, 0.15);
+    }
+
+    .hub-card-img-wrap {
+      width: 100%;
+      height: 235px;
+      overflow: hidden;
+      position: relative;
+      background: #0d121c;
+    }
+
+    .hub-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.45s ease;
+    }
+
+    .hub-card:hover .hub-card-img {
+      transform: scale(1.06);
+    }
+
+    .hub-card-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 90px;
+      background: linear-gradient(to top, #121824 20%, transparent 100%);
+    }
+
+    .hub-card-float-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      letter-spacing: 0.4px;
+    }
+
+    .hub-card-float-badge.models {
+      background: rgba(0, 210, 255, 0.25);
+      color: #00d2ff;
+      border: 1px solid rgba(0, 210, 255, 0.5);
+    }
+
+    .hub-card-float-badge.atlas {
+      background: rgba(250, 204, 21, 0.25);
+      color: #facc15;
+      border: 1px solid rgba(250, 204, 21, 0.5);
+    }
+
+    .hub-card-body {
+      padding: 14px 22px 22px 22px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .hub-card-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .hub-card-desc {
+      font-size: 0.84rem;
+      color: #94a3b8;
+      line-height: 1.45;
+      margin: 4px 0 14px 0;
+    }
+
+    .hub-card-btn {
+      width: 100%;
+      height: 42px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .hub-card-btn.primary {
+      background: linear-gradient(135deg, #00d2ff, #0055ff);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0, 210, 255, 0.4);
+    }
+
+    .hub-card:hover .hub-card-btn.primary {
+      background: linear-gradient(135deg, #2ee0ff, #1a75ff);
+      box-shadow: 0 8px 24px rgba(0, 210, 255, 0.6);
+    }
+
+    .hub-card-btn.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .hub-card:hover .hub-card-btn.secondary {
+      background: rgba(250, 204, 21, 0.2);
+      border-color: rgba(250, 204, 21, 0.5);
+      color: #fef08a;
+    }
+
+    /* ======================================================== */
+    /* ATLAS ARTICLES LIBRARY (EMPTY SQUARES PLACEHOLDERS)     */
+    /* ======================================================== */
+    #atlas-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 20%, rgba(18, 25, 38, 0.98) 0%, rgba(7, 10, 16, 0.99) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      z-index: 950;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 28px 40px;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+    }
+
+    #atlas-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .atlas-container {
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .atlas-top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 16px;
+    }
+
+    .atlas-brand-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .atlas-chip {
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      color: #facc15;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .atlas-actions-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .atlas-btn-nav {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 9px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .atlas-btn-nav:hover {
+      background: rgba(0, 210, 255, 0.2);
+      border-color: var(--accent);
+    }
+
+    .atlas-btn-nav.primary {
+      background: linear-gradient(135deg, #00d2ff, #0066ff);
+      border: none;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .atlas-btn-nav.primary:hover {
+      background: linear-gradient(135deg, #2ae0ff, #1a75ff);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+    }
+
+    .atlas-header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .atlas-title-text h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .atlas-title-text p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .atlas-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .atlas-search-box {
+      position: relative;
+      width: 260px;
+    }
+
+    .atlas-search-box input {
+      width: 100%;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0 12px 0 34px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .atlas-search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .atlas-search-box i {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .atlas-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .atlas-tab-btn.active, .atlas-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    /* Square Grid for Articles */
+    .atlas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 20px;
+      margin-top: 10px;
+      padding-bottom: 40px;
+    }
+
+    .atlas-square-card {
+      aspect-ratio: 1 / 1;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1.5px dashed rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      cursor: pointer;
+      position: relative;
+      text-align: center;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .atlas-square-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 210, 255, 0.6);
+      transform: translateY(-6px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 210, 255, 0.18);
+    }
+
+    .atlas-square-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      letter-spacing: 0.3px;
+    }
+
+    .atlas-square-card:hover .atlas-square-badge {
+      color: var(--accent);
+      border-color: rgba(0, 210, 255, 0.4);
+    }
+
+    .atlas-square-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      transition: all 0.25s;
+    }
+
+    .atlas-square-card:hover .atlas-square-icon-wrap {
+      background: rgba(0, 210, 255, 0.15);
+      border-color: var(--accent);
+      color: #fff;
+      transform: scale(1.08);
+    }
+
+    .atlas-square-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+      transition: color 0.2s;
+    }
+
+    .atlas-square-card:hover .atlas-square-title {
+      color: #fff;
+    }
+
+    .atlas-square-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .atlas-square-card.add-card {
+      border: 1.5px dashed rgba(0, 210, 255, 0.45);
+      background: rgba(0, 210, 255, 0.035);
+    }
+
+    .atlas-square-card.add-card .atlas-square-icon-wrap {
+      background: rgba(0, 210, 255, 0.12);
+      border-color: rgba(0, 210, 255, 0.4);
+      color: var(--accent);
+    }
+
+    .atlas-square-card.add-card:hover {
+      border-color: var(--accent);
+      background: rgba(0, 210, 255, 0.1);
+      box-shadow: 0 16px 36px rgba(0, 210, 255, 0.25);
+    }
+
+    .atlas-square-card.add-card:hover .atlas-square-icon-wrap {
+      background: var(--accent);
+      color: #090c13;
+      transform: scale(1.12);
+    }
+
+    
+    /* ======================================================== */
+    /* CLINICAL LECTURE MODAL & ATLAS ACTIVE LESSON CARD        */
+    /* ======================================================== */
+    .atlas-square-card.active-lesson {
+      border: 1.5px solid rgba(0, 210, 255, 0.5);
+      background: linear-gradient(155deg, rgba(0, 210, 255, 0.10) 0%, rgba(12, 18, 30, 0.95) 100%);
+      padding: 10px 10px 14px 10px;
+      justify-content: flex-start;
+      align-items: stretch;
+      cursor: pointer;
+    }
+
+    .atlas-square-card.active-lesson:hover {
+      border-color: var(--accent);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 210, 255, 0.4);
+      transform: translateY(-6px);
+    }
+
+    .atlas-card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+
+    .atlas-square-badge.featured {
+      position: static;
+      background: rgba(250, 204, 21, 0.18);
+      border-color: rgba(250, 204, 21, 0.4);
+      color: #facc15;
+      font-weight: 800;
+      font-size: 0.68rem;
+    }
+
+    .atlas-badge-live {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .atlas-card-thumbnail-wrap {
+      width: 100%;
+      height: 110px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #080c14;
+    }
+
+    .atlas-card-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.4s ease;
+    }
+
+    .atlas-square-card.active-lesson:hover .atlas-card-thumb-img {
+      transform: scale(1.08);
+    }
+
+    .atlas-card-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10, 15, 26, 0.85) 0%, transparent 65%);
+      display: flex;
+      align-items: flex-end;
+      padding: 8px;
+    }
+
+    .atlas-play-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #06090e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
+    }
+
+    /* Fullscreen Modal for Celiac Lecture */
+    #celiac-lecture-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(5, 8, 15, 0.90);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+    }
+
+    #celiac-lecture-modal.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .lec-header {
+      height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(10, 15, 26, 0.88);
+      flex-shrink: 0;
+    }
+
+    .lec-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lec-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      background: rgba(0, 210, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+
+    .lec-tag-pill.gold {
+      background: rgba(250, 204, 21, 0.12);
+      color: #facc15;
+      border-color: rgba(250, 204, 21, 0.3);
+    }
+
+    .lec-title-text h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lec-title-text p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .lec-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lec-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    .lec-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+
+    .lec-btn.primary {
+      background: linear-gradient(135deg, #00d2ff, #0077ff);
+      border-color: transparent;
+      color: #06090e;
+    }
+
+    .lec-btn.primary:hover {
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .lec-btn.close {
+      background: rgba(255, 71, 87, 0.12);
+      border-color: rgba(255, 71, 87, 0.25);
+      color: #ff4757;
+    }
+
+    .lec-btn.close:hover {
+      background: #ff4757;
+      color: #fff;
+    }
+
+    .lec-btn.danger {
+      background: rgba(255, 71, 87, 0.14);
+      border-color: rgba(255, 71, 87, 0.35);
+      color: #ff4757;
+    }
+
+    .lec-btn.danger:hover {
+      background: #ff4757;
+      color: #fff;
+    }
+
+    /* Main Split View */
+    .lec-main-split {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 3D Viewport Column */
+    .lec-3d-col {
+      flex: 1.35;
+      position: relative;
+      background: radial-gradient(circle at 45% 45%, #141f33 0%, #060a12 100%);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    #celiac-canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .lec-3d-tools {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 85%;
+    }
+
+    .lec-tool-btn {
+      padding: 7px 13px;
+      border-radius: 9px;
+      background: rgba(12, 18, 30, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .lec-tool-btn:hover {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .lec-tool-btn.active {
+      background: rgba(0, 210, 255, 0.25);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .lec-selected-badge {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(11, 16, 28, 0.90);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      border-left: 4px solid var(--highlight-yellow);
+      padding: 12px 18px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .lec-selected-info h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lec-selected-info p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .lec-selected-latin {
+      font-style: italic;
+      color: #00d2ff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    /* Study Hub Column */
+    .lec-study-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(8, 12, 20, 0.94);
+      overflow: hidden;
+    }
+
+    .lec-nav-tabs {
+      display: flex;
+      background: rgba(12, 18, 30, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 16px 0;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .lec-tab-item {
+      padding: 10px 14px;
+      border-radius: 10px 10px 0 0;
+      font-size: 0.80rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: all 0.2s;
+    }
+
+    .lec-tab-item:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .lec-tab-item.active {
+      color: #fff;
+      background: rgba(18, 26, 44, 0.95);
+      border-color: rgba(255, 255, 255, 0.1);
+      border-top: 2px solid var(--accent);
+    }
+
+    .lec-tab-content-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px;
+    }
+
+    /* Tab 1: Landmarks List */
+    .lec-landmarks-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .lec-landmark-card {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lec-landmark-card:hover {
+      background: rgba(0, 210, 255, 0.08);
+      border-color: rgba(0, 210, 255, 0.35);
+      transform: translateX(4px);
+    }
+
+    .lec-landmark-card.active {
+      background: rgba(250, 204, 21, 0.12);
+      border-color: rgba(250, 204, 21, 0.5);
+    }
+
+    .lec-lm-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lec-lm-idx {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(0, 210, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.76rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .lec-landmark-card.active .lec-lm-idx {
+      background: #facc15;
+      color: #06090e;
+      border-color: #facc15;
+    }
+
+    .lec-lm-name-vi {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .lec-lm-name-latin {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 1px;
+    }
+
+    .lec-lm-btn {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .lec-eye-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.74rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .lec-eye-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #fff;
+    }
+
+    .lec-landmark-card.is-hidden {
+      opacity: 0.42;
+      filter: grayscale(40%);
+      border-style: dashed;
+    }
+
+    /* Tab 2 & 3 Articles Typography */
+    .lec-article {
+      color: #e2e8f0;
+      line-height: 1.65;
+      font-size: 0.88rem;
+    }
+
+    .lec-article h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 20px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lec-article h3:first-child {
+      margin-top: 0;
+    }
+
+    .lec-article p {
+      margin-bottom: 14px;
+      color: #cbd5e1;
+    }
+
+    .lec-callout {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0, 210, 255, 0.08);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      border-left: 4px solid var(--accent);
+      margin: 16px 0;
+    }
+
+    .lec-callout.warning {
+      background: rgba(255, 71, 87, 0.08);
+      border-color: rgba(255, 71, 87, 0.25);
+      border-left-color: #ff4757;
+    }
+
+    .lec-callout.gold {
+      background: rgba(250, 204, 21, 0.08);
+      border-color: rgba(250, 204, 21, 0.25);
+      border-left-color: #facc15;
+    }
+
+    .lec-callout-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lec-pearl-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+    }
+
+    .lec-pearl-card:hover {
+      border-color: rgba(0, 210, 255, 0.35);
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .lec-pearl-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lec-netter-img-wrap {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: #000;
+    }
+
+    .lec-netter-img-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ======================================================== */
+    /* HOVER TOOLTIP & LOADING SCREEN                           */
+    /* ======================================================== */
+    #hover-tooltip {
+      position: absolute;
+      z-index: 50;
+      background: rgba(11, 16, 26, 0.94);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      padding: 7px 14px;
+      border-radius: 9px;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.7), 0 0 15px rgba(0, 210, 255, 0.2);
+    }
+
+    #hover-tooltip-title {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #fff;
+    }
+
+    #hover-tooltip-sub {
+      font-size: 0.74rem;
+      color: var(--highlight-yellow);
+      font-style: italic;
+    }
+
+    #loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #06090e;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      transition: opacity 0.4s ease;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.08);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.2px;
+    }
+
+    .loading-progress-bar {
+      width: 260px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loading-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #00d2ff, #3b82f6);
+      transition: width 0.25s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-status">Đang nạp mô hình giải phẫu 3D...</div>
+    <div class="loading-progress-bar">
+      <div class="loading-progress-fill" id="loading-fill"></div>
+    </div>
+  </div>
+
+  <!-- Startup Hub Overlay -->
+  <div id="hub-overlay">
+    <button class="hub-close-btn" onclick="closeHubOverlay()" title="Bỏ qua / Đóng (Esc)"><i class="fa-solid fa-xmark"></i></button>
+    <div class="hub-modal">
+      <div class="hub-title-wrap">
+        <div class="hub-brand-badge"><i class="fa-solid fa-dna"></i> AnatoVi 3D Pro Hub</div>
+        <h1 class="hub-title">Chọn Chế Độ Khám Phá</h1>
+        <p class="hub-subtitle">Khởi đầu trải nghiệm giải phẫu học 3D tương tác đa chiều chuyên sâu</p>
+      </div>
+
+      <div class="hub-cards-grid">
+        <!-- 1. Models Card -->
+        <div class="hub-card" onclick="selectHubMode('models')">
+          <div class="hub-card-img-wrap">
+            <img src="assets/hub_models.png" alt="Mô Hình 3D Toàn Thân" class="hub-card-img">
+            <div class="hub-card-gradient"></div>
+            <div class="hub-card-float-badge models"><i class="fa-solid fa-cube"></i> Models</div>
+          </div>
+          <div class="hub-card-body">
+            <div class="hub-card-header">
+              <div class="hub-card-title">Mô Hình (Models)</div>
+            </div>
+            <p class="hub-card-desc">Khám phá toàn bộ cơ thể người 3D thời gian thực với đầy đủ 12 hệ cơ quan, bóc tách 8 tầng cơ bắp và 5 tầng mạch máu.</p>
+            <button class="hub-card-btn primary"><i class="fa-solid fa-arrow-right"></i> Mở Mô Hình 3D</button>
+          </div>
+        </div>
+
+        <!-- 2. Atlas Card -->
+        <div class="hub-card" onclick="selectHubMode('atlas')">
+          <div class="hub-card-img-wrap">
+            <img src="assets/hub_atlas_large.png" alt="Atlas Giải Phẫu" class="hub-card-img">
+            <div class="hub-card-gradient"></div>
+            <div class="hub-card-float-badge atlas"><i class="fa-solid fa-book-atlas"></i> Atlas</div>
+          </div>
+          <div class="hub-card-body">
+            <div class="hub-card-header">
+              <div class="hub-card-title">Atlas (Bài Học)</div>
+            </div>
+            <p class="hub-card-desc">Thư viện các bài viết, chuyên đề giải phẫu học lâm sàng (dành cho các bài sẽ nhập nội dung vào sau).</p>
+            <button class="hub-card-btn secondary"><i class="fa-solid fa-book-open"></i> Mở Thư Viện Bài Học</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Canvas Container -->
+  <div id="webgl-container"></div>
+
+  <!-- Hover Tooltip -->
+  <div id="hover-tooltip">
+    <div id="hover-tooltip-title">Tên cơ quan</div>
+    <div id="hover-tooltip-sub">Latin / English</div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="glass">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-dna"></i></div>
+      <div class="brand-name-wrap">
+        <span class="brand-name">AnatoVi 3D</span>
+        <span class="brand-pro-badge">PRO</span>
+      </div>
+    </div>
+
+    <!-- Search Omnibar -->
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" class="search-input" id="search-input" placeholder="Tìm kiếm cơ quan (vd: cơ nhị đầu, tim, não)..." autocomplete="off">
+      <span class="search-kbd-hint">Ctrl K</span>
+      <div class="search-results" id="search-results"></div>
+    </div>
+
+    <!-- View Presets & Controls -->
+    <div class="top-controls">
+      <div class="view-presets">
+        <button class="view-btn active" id="view-front" onclick="setCameraView('front')">Trước</button>
+        <button class="view-btn" id="view-back" onclick="setCameraView('back')">Sau</button>
+        <button class="view-btn" id="view-left" onclick="setCameraView('left')">Trái</button>
+        <button class="view-btn" id="view-right" onclick="setCameraView('right')">Phải</button>
+        <button class="view-btn" id="view-top" onclick="setCameraView('top')">Trên</button>
+      </div>
+
+      <div class="view-presets">
+        <button class="view-btn" id="btn-hub" onclick="openHubOverlay()" title="Màn hình mở đầu (Hub)"><i class="fa-solid fa-shapes"></i> <span style="font-weight:700;">Hub</span></button>
+        <button class="view-btn" id="btn-atlas-open" onclick="openAtlasOverlay()" title="Mở thư viện bài học Atlas"><i class="fa-solid fa-book-open"></i> <span style="font-weight:700;">Atlas</span></button>
+        <button class="view-btn view-btn-icon-only" id="btn-rotate" onclick="toggleAutoRotate()" title="Tự động xoay 360°"><i class="fa-solid fa-arrows-rotate"></i></button>
+        <button class="view-btn view-btn-icon-only" onclick="resetCamera()" title="Đặt lại góc nhìn chuẩn"><i class="fa-solid fa-house"></i></button>
+        <button class="view-btn view-btn-icon-only" onclick="unhideAll()" title="Hiện lại tất cả cơ quan"><i class="fa-solid fa-eye"></i></button>
+        <button class="view-btn view-btn-icon-only" onclick="toggleFullscreen()" title="Toàn màn hình"><i class="fa-solid fa-expand"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Atlas Articles Library Overlay (Empty Squares Placeholders) -->
+  <div id="atlas-overlay" class="hidden">
+    <div class="atlas-container">
+      <!-- Top Navigation -->
+      <div class="atlas-top-nav">
+        <div class="atlas-brand-meta">
+          <span style="font-size: 1.2rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-dna" style="color: var(--accent);"></i> AnatoVi 3D
+          </span>
+          <span style="color: rgba(255,255,255,0.2);">/</span>
+          <div class="atlas-chip"><i class="fa-solid fa-book-open"></i> Thư Viện Atlas (Bài Học)</div>
+        </div>
+        <div class="atlas-actions-right">
+          <button class="atlas-btn-nav primary" onclick="closeAtlasOverlay()" title="Xem mô hình 3D tương tác"><i class="fa-solid fa-cube"></i> Về Mô Hình 3D</button>
+          <button class="atlas-btn-nav" onclick="closeAtlasOverlay(); openHubOverlay();" title="Mở bảng Hub"><i class="fa-solid fa-shapes"></i> Hub</button>
+          <button class="atlas-btn-nav" onclick="closeAtlasOverlay()" title="Đóng (Esc)"><i class="fa-solid fa-xmark"></i> Đóng</button>
+        </div>
+      </div>
+
+      <!-- Header Banner -->
+      <div class="atlas-header-banner">
+        <div class="atlas-title-text">
+          <h1>Thư Viện Bài Học & Chuyên Đề Atlas</h1>
+          <p>Các ô vuông vị trí bài học giải phẫu — Sẵn sàng để bạn cấu hình và nhập nội dung bài viết sau.</p>
+        </div>
+        <div class="atlas-filter-bar">
+          <div class="atlas-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Tìm bài học..." id="atlas-search">
+          </div>
+          <button class="atlas-tab-btn active">Tất cả bài (12)</button>
+          <button class="atlas-tab-btn">Chờ nhập</button>
+          <button class="atlas-btn-nav" style="padding: 6px 14px; font-size: 0.8rem; background: rgba(0,210,255,0.15); border-color: rgba(0,210,255,0.3); color: #fff;" onclick="clickEmptyAtlasSlot('new')"><i class="fa-solid fa-plus"></i> Nhập bài mới</button>
+        </div>
+      </div>
+
+      <!-- Grid of Empty Squares -->
+      <div class="atlas-grid">
+        <!-- 1. Special Add Slot -->
+        <div class="atlas-square-card add-card" onclick="clickEmptyAtlasSlot('new')" title="Bấm để tạo ô bài học mới">
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <div class="atlas-square-title">Nhập Bài Mới</div>
+          <div class="atlas-square-sub">+ Tạo ô bài học mới</div>
+        </div>
+
+        <!-- 2. Active Lesson #01: Các Động Mạch của Dạ Dày, Gan và Lách -->
+        <div class="atlas-square-card active-lesson" onclick="openCeliacLecture()" title="Bấm để mở bài giảng 3D tương tác">
+          <div class="atlas-card-top-row">
+            <span class="atlas-square-badge featured"><i class="fa-solid fa-star"></i> Bài #01</span>
+            <span class="atlas-badge-live"><i class="fa-solid fa-circle"></i> Sẵn Sàng 3D</span>
+          </div>
+          <div class="atlas-card-thumbnail-wrap">
+            <img src="assets/lecture_celiac_arteries.jpg" alt="Các Động Mạch của Dạ Dày, Gan và Lách" class="atlas-card-thumb-img">
+            <div class="atlas-card-thumb-overlay">
+              <span class="atlas-play-btn"><i class="fa-solid fa-cube"></i></span>
+            </div>
+          </div>
+          <div class="atlas-square-title" style="color:#00d2ff; text-align:left; font-size: 0.88rem; margin-top:4px;">ĐM Dạ Dày, Gan & Lách</div>
+          <div class="atlas-square-sub" style="text-align:left; font-size: 0.72rem;">Thân tạng (Tripus celiacus) & Tuần hoàn tạng Netter BP 64</div>
+        </div>
+
+        <!-- 3. Empty Slot #02 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(2)">
+          <span class="atlas-square-badge">Bài #02</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 4. Empty Slot #03 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(3)">
+          <span class="atlas-square-badge">Bài #03</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 5. Empty Slot #04 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(4)">
+          <span class="atlas-square-badge">Bài #04</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 6. Empty Slot #05 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(5)">
+          <span class="atlas-square-badge">Bài #05</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 7. Empty Slot #06 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(6)">
+          <span class="atlas-square-badge">Bài #06</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 8. Empty Slot #07 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(7)">
+          <span class="atlas-square-badge">Bài #07</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 9. Empty Slot #08 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(8)">
+          <span class="atlas-square-badge">Bài #08</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 10. Empty Slot #09 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(9)">
+          <span class="atlas-square-badge">Bài #09</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 11. Empty Slot #10 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(10)">
+          <span class="atlas-square-badge">Bài #10</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+
+        <!-- 12. Empty Slot #11 -->
+        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(11)">
+          <span class="atlas-square-badge">Bài #11</span>
+          <div class="atlas-square-icon-wrap">
+            <i class="fa-regular fa-square-plus"></i>
+          </div>
+          <div class="atlas-square-title">Ô Vuông Trống</div>
+          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- DEDICATED CLINICAL LECTURE MODAL (CELIAC ARTERIES)       -->
+  <!-- ======================================================== -->
+  <div id="celiac-lecture-modal" class="hidden">
+    <!-- Modal Header -->
+    <div class="lec-header">
+      <div class="lec-brand-wrap">
+        <span style="font-size: 1.15rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-dna" style="color: var(--accent);"></i> AnatoVi 3D
+        </span>
+        <span style="color: rgba(255,255,255,0.2);">/</span>
+        <div class="lec-tag-pill"><i class="fa-solid fa-book-open"></i> Bài Giảng Chuyên Đề #01</div>
+        <div class="lec-tag-pill gold"><i class="fa-solid fa-certificate"></i> Netter BP 64</div>
+      </div>
+
+      <div class="lec-title-text" style="text-align: center;">
+        <h2>Các Động Mạch của Dạ Dày, Gan và Lách</h2>
+        <p>Thân Động Mạch Tạng (Truncus Coeliacus) & Mạng Lưới Tuần Hoàn Tạng Tầng Trên Mạc Treo</p>
+      </div>
+
+      <div class="lec-actions">
+        <button class="lec-btn" id="btn-lec-toggle-sidebar" onclick="toggleLectureSidebar()" title="Ẩn/Hiện bảng bài giảng để mở rộng không gian 3D"><i class="fa-solid fa-table-columns" id="icon-lec-sidebar"></i> <span id="txt-lec-sidebar">Ẩn Bài Giảng</span></button>
+        <button class="lec-btn" onclick="viewCeliacInFullBody()" title="Xem cấu trúc này trên cơ thể người 3D đầy đủ"><i class="fa-solid fa-person"></i> Toàn Thân 3D</button>
+        <button class="lec-btn" onclick="toggleLectureFullscreen()" title="Toàn màn hình"><i class="fa-solid fa-expand"></i> Phóng To</button>
+        <button class="lec-btn close" onclick="closeCeliacLecture()" title="Đóng bài giảng (Esc)"><i class="fa-solid fa-xmark"></i> Đóng</button>
+      </div>
+    </div>
+
+    <!-- Modal Main Split Content -->
+    <div class="lec-main-split">
+      <!-- Left: Dedicated 3D Anatomical Canvas -->
+      <div class="lec-3d-col">
+        <div id="celiac-canvas-container"></div>
+
+        <!-- Floating 3D Toolbar -->
+        <div class="lec-3d-tools">
+          <button class="lec-tool-btn" id="btn-lec-netter" onclick="setNetterViewpoint()" style="border-color: #facc15; color: #facc15; background: rgba(250, 204, 21, 0.12);" title="Góc nhìn phối cảnh kinh điển Netter Plate BP 64"><i class="fa-solid fa-palette"></i> Góc Nhìn Netter</button>
+          <button class="lec-tool-btn active" id="btn-lec-stomach" onclick="cycleLectureStomach()"><i class="fa-solid fa-cookie-bite"></i> Dạ Dày: <span id="txt-lec-stomach">Rõ</span></button>
+          <button class="lec-tool-btn" id="btn-lec-liver" onclick="cycleLectureLiver()"><i class="fa-solid fa-shield-halved"></i> Gan: <span id="txt-lec-liver">Mờ (X-Ray)</span></button>
+          <button class="lec-tool-btn" id="btn-lec-solo" onclick="toggleLectureArteriesSolo()"><i class="fa-solid fa-heart-pulse"></i> Chỉ Xem Mạch Máu</button>
+          <button class="lec-tool-btn" id="btn-lec-unhide-all" onclick="unhideAllCeliacMeshes()" style="display: none; border-color: #00d2ff; color: #00d2ff; background: rgba(0, 210, 255, 0.15);" title="Hiện lại tất cả các cấu trúc đã ẩn"><i class="fa-solid fa-eye"></i> Hiện Lại Tất Cả (<span id="lec-hidden-count">0</span>)</button>
+          <button class="lec-tool-btn" onclick="resetLectureCamera()"><i class="fa-solid fa-camera-rotate"></i> Đặt Lại Góc</button>
+          <button class="lec-tool-btn" id="btn-lec-rotate" onclick="toggleLectureAutoRotate()"><i class="fa-solid fa-arrows-rotate"></i> Tự Xoay</button>
+        </div>
+
+        <!-- Floating Selected Structure Badge -->
+        <div class="lec-selected-badge" id="lec-selected-badge">
+          <div class="lec-selected-info">
+            <h4 id="lec-badge-title"><i class="fa-solid fa-crosshairs" style="color: #facc15;"></i> Thân Động Mạch Tạng</h4>
+            <div class="lec-selected-latin" id="lec-badge-latin">Truncus coeliacus (Celiac trunk)</div>
+            <p id="lec-badge-desc">Xuất phát từ mặt trước động mạch chủ bụng ngang mức T12/L1, chia thành 3 nhánh chính nuôi dạ dày, gan, lách và tá tụy.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <button class="lec-btn danger" id="btn-lec-hide" onclick="hideCeliacSelected()" style="padding:6px 14px; font-size:0.75rem;" title="Ẩn cấu trúc này để quan sát cấu trúc phía sau (phím tắt H)"><i class="fa-solid fa-eye-slash"></i> Ẩn Đi</button>
+            <button class="lec-btn primary" style="padding:6px 14px; font-size:0.75rem;" onclick="focusCeliacSelection()"><i class="fa-solid fa-magnifying-glass-plus"></i> Cận Cảnh</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Medical Lecture & Study Hub -->
+      <div class="lec-study-col">
+        <!-- Navigation Tabs -->
+        <div class="lec-nav-tabs">
+          <div class="lec-tab-item active" id="tab-btn-landmarks" onclick="switchLectureTab('landmarks')"><i class="fa-solid fa-layer-group"></i> Danh Mục Cấu Trúc</div>
+          <div class="lec-tab-item" id="tab-btn-theory" onclick="switchLectureTab('theory')"><i class="fa-solid fa-book-medical"></i> Bài Giảng Chi Tiết</div>
+          <div class="lec-tab-item" id="tab-btn-clinical" onclick="switchLectureTab('clinical')"><i class="fa-solid fa-stethoscope"></i> Ngoại Khoa & Lâm Sàng</div>
+          <div class="lec-tab-item" id="tab-btn-netter" onclick="switchLectureTab('netter')"><i class="fa-solid fa-image"></i> Tranh Netter Gốc</div>
+        </div>
+
+        <!-- Tab Content Wrap -->
+        <div class="lec-tab-content-wrap">
+          <!-- 1. LANDMARKS LIST TAB -->
+          <div id="lec-content-landmarks" class="lec-landmarks-grid">
+            <!-- Items dynamically created or static list -->
+          </div>
+
+          <!-- 2. THEORY TAB -->
+          <div id="lec-content-theory" class="lec-article" style="display: none;">
+            <h3><i class="fa-solid fa-circle-nodes" style="color: var(--accent);"></i> I. Nguồn Gốc & Thân Động Mạch Tạng</h3>
+            <p><strong>Thân động mạch tạng (Truncus coeliacus / Celiac trunk)</strong> là một thân mạch máu lớn, ngắn (chiều dài trung bình 1.0 – 2.5 cm, đường kính 6 – 8 mm), xuất phát trực tiếp từ mặt trước của <strong>Động mạch chủ bụng</strong> ngay dưới lỗ cơ hoành, ngang mức đốt sống ngực 12 (T12) hoặc đốt sống thắt lưng 1 (L1).</p>
+            <div class="lec-callout gold">
+              <div class="lec-callout-title"><i class="fa-solid fa-triangle-exclamation"></i> Kiềng 3 Chân Haller (Tripus Celiacus)</div>
+              Ngay sau khi đi ra trước ở bờ trên thân tụy, thân tạng chia thành 3 ngành cùng lớn kinh điển:
+              <br>1. <strong>Động mạch vị trái</strong> (Arteria gastrica sinistra).
+              <br>2. <strong>Động mạch gan chung</strong> (Arteria hepatica communis).
+              <br>3. <strong>Động mạch lách</strong> (Arteria splenica / lienalis).
+            </div>
+
+            <h3><i class="fa-solid fa-droplet" style="color: #f43f5e;"></i> II. Động Mạch Vị Trái & Các Nhánh Thực Quản</h3>
+            <p>Là nhánh nhỏ nhất trong 3 nhánh của thân tạng. Động mạch chạy chếch lên trên sang trái đến tâm vị trong nếp vị tụy trái, cho <strong>các nhánh thực quản</strong> qua lỗ tâm vị nuôi đoạn dưới thực quản, sau đó quặt ngược đi dọc theo bờ cong nhỏ dạ dày trong mạc nối nhỏ.</p>
+
+            <h3><i class="fa-solid fa-shield-halved" style="color: #06b6d4;"></i> III. Động Mạch Gan Chung & Cuống Gan</h3>
+            <p>Chạy sang phải dọc theo bờ trên đầu tụy. Đến bờ trên môn vị thì chia thành 2 nhánh:</p>
+            <p>• <strong>Động mạch gan riêng (A. hepatica propria)</strong>: Đi trong cuống gan (mạc nối nhỏ). Ở cuống gan: ĐM gan riêng nằm bên trái, Ống mật chủ nằm bên phải, Tĩnh mạch cửa nằm phía sau. Chia nhánh nuôi thùy gan trái, thùy gan phải, và cho <strong>Động mạch túi mật</strong>.</p>
+            <p>• <strong>Động mạch vị - tá tràng (A. gastroduodenalis)</strong>: Đi xuống sau môn vị và đoạn 1 tá tràng, chia nhánh nuôi đầu tụy (ĐM tá tụy trên) và cho <strong>Động mạch vị - mạc nối phải</strong> chạy vào bờ cong lớn.</p>
+
+            <h3><i class="fa-solid fa-wave-square" style="color: #f59e0b;"></i> IV. Động Mạch Lách & Tuần Hoàn Dạ Dày - Tụy</h3>
+            <p>Là nhánh lớn nhất của thân tạng, có đường đi ngoằn ngoèo đặc trưng dọc theo bờ trên thân và đuôi tụy, qua dây chằng vị lách đến rốn lách. Cho các nhánh tụy, <strong>các động mạch vị ngắn</strong> (5 - 7 nhánh nuôi đáy vị) và <strong>Động mạch vị - mạc nối trái</strong> chạy dọc bờ cong lớn.</p>
+
+            <h3><i class="fa-solid fa-circle-notch" style="color: #10b981;"></i> V. Sơ Đồ Hai Vòng Mạch Dạ Dày</h3>
+            <div class="lec-callout">
+              <div class="lec-callout-title"><i class="fa-solid fa-link"></i> 1. Vòng Mạch Bờ Cong Nhỏ</div>
+              Hợp thành bởi sự nối tiếp giữa <strong>Động mạch vị trái</strong> (từ thân tạng đi xuống) và <strong>Động mạch vị phải</strong> (từ ĐM gan riêng đi lên). Nằm trong mạc nối nhỏ áp sát bờ cong.
+            </div>
+            <div class="lec-callout">
+              <div class="lec-callout-title"><i class="fa-solid fa-link"></i> 2. Vòng Mạch Bờ Cong Lớn</div>
+              Hợp thành bởi sự nối tiếp giữa <strong>Động mạch vị - mạc nối phải</strong> (nhánh ĐM vị tá tràng) và <strong>Động mạch vị - mạc nối trái</strong> (nhánh ĐM lách). Nằm giữa hai lá của mạc nối lớn cách bờ cong 1.5 - 2 cm, tỏa các nhánh thẳng (*rami gastrici*) lên nuôi thành dạ dày.
+            </div>
+
+            <h3><i class="fa-solid fa-microscope" style="color: #a855f7;"></i> VI. Cơ Chế Vi Tuần Hoàn Xuyên Thành Dạ Dày</h3>
+            <p>Dạ dày là một tạng rỗng có 4 lớp: <strong>Thanh mạc (Serosa) &rarr; Tầng cơ &rarr; Tầng dưới niêm mạc &rarr; Niêm mạc (Mucosa)</strong>. Tuyệt đối không có bất kỳ thân động mạch nào đi trong lòng dạ dày bởi môi trường acid chát chúa (pH 1.5 - 2) và men pepsin sẽ tiêu hủy thành mạch ngay tức khắc. Mạch máu chỉ chạy ngoài tạng trong mạc nối, sau đó cho các nhánh xiên (*rami gastrici*) đi dưới thanh mạc, đâm vuông góc qua lớp cơ vào tầng dưới niêm mạc tạo nên mạng lưới mao mạch nuôi dưỡng thành tạng từ ngoài vào trong.</p>
+
+            <h3><i class="fa-solid fa-door-open" style="color: #06b6d4;"></i> VII. Khoang Hậu Cung Mạc Nối & Giường Dạ Dày</h3>
+            <p>Thành sau dạ dày được ngăn cách tuyệt đối với Tuyến tụy, Động mạch lách và Thân tạng bởi khoang ảo <strong>Hậu cung mạc nối (Bursa omentalis / Lesser sac)</strong>. Nhờ dịch trơn láng trong khoang này, dạ dày co bóp nhào trộn và giãn nở tự do trượt trên bề mặt giường tụy mà không làm tổn thương hay cọ sát vào các thân mạch máu sau phúc mạc.</p>
+          </div>
+
+          <!-- 3. CLINICAL PEARLS TAB -->
+          <div id="lec-content-clinical" class="lec-article" style="display: none;">
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-triangle-exclamation" style="color: #ff4757;"></i> 1. Xuất Huyết Do Thủng Loét Hành Tá Tràng (GDA Bleeding)</div>
+              <p>Thành sau của đoạn I tá tràng (hành tá tràng) áp sát mặt sau của <strong>Động mạch vị - tá tràng (Gastroduodenal artery)</strong>. Khi ổ loét tá tràng ăn sâu vào thành sau, nó có thể ăn thủng trực tiếp lòng động mạch lớn này, gây xuất huyết tiêu hóa ồ ạt, nôn ra máu đỏ tươi xối xả và sốc mất máu cấp tính. Cần can thiệp nội mạch nút mạch hoặc mở mổ khâu cầm máu khẩn cấp.</p>
+            </div>
+
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-scissors" style="color: #38bdf8;"></i> 2. Nguyên Tắc Thắt 4 Cuống Mạch Trong Cắt Dạ Dày (Gastrectomy)</div>
+              <p>Trong phẫu thuật cắt toàn bộ hoặc bán phần dạ dày do ung thư dạ dày (Gastric Cancer), phẫu thuật viên bắt buộc phải kiểm soát và thắt 4 cuống mạch chính:
+              <br>• Cuống 1: ĐM vị trái (thắt sát gốc thân tạng để nạo vét chặng hạch số 7).
+              <br>• Cuống 2: ĐM vị phải (ở bờ trên môn vị).
+              <br>• Cuống 3: ĐM vị - mạc nối phải (ở bờ dưới môn vị).
+              <br>• Cuống 4: ĐM vị - mạc nối trái & các nhánh vị ngắn (ở dây chằng vị lách).</p>
+            </div>
+
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-syringe" style="color: #f59e0b;"></i> 3. Nút Mạch Hóa Chất Gan (TACE) Trong Ung Thư Gan (HCC)</div>
+              <p>Khối u ung thư tế bào gan (HCC) nhận đến 85–90% lượng máu nuôi từ hệ thống <strong>Động mạch gan</strong> (nhánh của ĐM gan riêng), trong khi nhu mô gan lành nhận 75% máu từ <strong>Tĩnh mạch cửa</strong>. Bác sĩ can thiệp mạch luồn ống thông siêu nhỏ từ ĐM đùi qua ĐM chủ bụng vào Thân tạng -> ĐM gan riêng -> bơm thuốc hóa chất kèm hạt nút mạch tắc mạch nuôi u mà không làm hoại tử gan lành.</p>
+            </div>
+
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-vial" style="color: #10b981;"></i> 4. Tam Giác Calot & Phẫu Thuật Cắt Túi Mật Nội Soi</div>
+              <p>Trong phẫu thuật cắt túi mật nội soi (Laparoscopic Cholecystectomy), phẫu thuật viên phải bóc tách bộc lộ rõ <strong>Tam giác Calot</strong> (giới hạn bởi: bờ dưới gan, ống túi mật, ống gan chung) để tìm và kẹp cắt <strong>Động mạch túi mật</strong> (thường tách từ ĐM gan phải). Cần nắm vững các biến thể giải phẫu để tránh kẹp nhầm vào ĐM gan phải hoặc ống mật chủ.</p>
+            </div>
+
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-heart-crack" style="color: #ec4899;"></i> 5. Chấn Thương Vỡ Lách & Rách Động Mạch Lách</div>
+              <p>Lách là tạng đặc dễ vỡ nhất trong chấn thương bụng kín (tai nạn giao thông va đập mạn sườn trái). Động mạch lách có lưu lượng và áp lực cao, do đó vỡ lách thường gây tràn máu ổ bụng lượng lớn trong thời gian ngắn, đòi hỏi hồi sức tích cực và phẫu thuật cắt lách cấp cứu hoặc nút mạch bảo tồn.</p>
+            </div>
+
+            <div class="lec-pearl-card">
+              <div class="lec-pearl-title"><i class="fa-solid fa-diagram-project" style="color: #818cf8;"></i> 6. Bản Đồ Nạo Vét Hạch Ung Thư Dạ Dày D2 (JGCA Stations)</div>
+              <p>Phân loại của Hiệp hội Ung thư Dạ dày Nhật Bản (JGCA) định vị các chặng hạch gắn liền trực tiếp với cây động mạch Thân Tạng:
+              <br>• <strong>Chặng D1 (Nhóm 1–6):</strong> Dọc bờ cong nhỏ (nhóm 1, 3, 5) và bờ cong lớn (nhóm 2, 4, 6).
+              <br>• <strong>Chặng D2 (Nhóm 7–12):</strong> Nhóm 7 (quanh gốc ĐM vị trái), Nhóm 8 (dọc ĐM gan chung), Nhóm 9 (quanh Thân ĐM tạng), Nhóm 10 (rốn lách), Nhóm 11 (dọc thân ĐM lách trên bờ trên tụy), Nhóm 12 (trong cuống gan dọc ĐM gan riêng & TM cửa).</p>
+            </div>
+          </div>
+
+          <!-- 4. ORIGINAL NETTER PLATE TAB -->
+          <div id="lec-content-netter" class="lec-article" style="display: none;">
+            <p style="margin-bottom: 12px; color: #94a3b8;"><i class="fa-solid fa-magnifying-glass"></i> Tranh giải phẫu y khoa kinh điển từ Danh họa Y học - Bác sĩ Frank H. Netter, MD (Netter Plate BP 64):</p>
+            <div class="lec-netter-img-wrap">
+              <img src="assets/lecture_celiac_arteries.jpg" alt="Các Động Mạch của Dạ Dày, Gan và Lách - Frank H. Netter MD">
+            </div>
+            <div style="margin-top: 14px; padding: 12px 16px; background: rgba(0,210,255,0.06); border-radius: 10px; font-size: 0.82rem; color: #cbd5e1;">
+              <strong>Ghi chú đối chiếu mô hình:</strong> Trong tranh vẽ của Netter, gan được lật ngược lên trên sang phải để bộc lộ rõ cuống gan và mặt tạng; mạc nối lớn được vén sang một bên. Mô hình 3D AnatoVi đã được căn chỉnh góc nhìn và độ trong suốt của gan/dạ dày để bạn có thể nhìn xuyên thấu và tương tác 360° tương đương góc nhìn mổ thực tế!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Inspector Panel -->
+  <aside class="inspector-panel glass" id="inspector">
+    <div class="inspector-header">
+      <div>
+        <div class="organ-title-vi" id="inspect-title-vi">Cơ Nhị Đầu Cánh Tay</div>
+        <div class="organ-title-latin" id="inspect-title-latin">Musculus biceps brachii</div>
+        <div class="organ-title-en" id="inspect-title-en">Biceps brachii muscle</div>
+      </div>
+      <button class="close-btn" onclick="closeInspector()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="system-tag" id="inspect-system">
+      <i class="fa-solid fa-circle-info"></i> Hệ Cơ Bắp
+    </div>
+
+    <div class="organ-desc-card" id="inspect-desc">
+      Cơ hai đầu nằm ở mặt trước cánh tay, là cơ gập cẳng tay chính ở khớp khuỷu và ngửa cẳng tay mạnh nhất.
+    </div>
+
+    <!-- Medical Actions -->
+    <div class="action-grid">
+      <button class="action-btn" onclick="isolateSelected()"><i class="fa-solid fa-compress"></i> Cô Lập</button>
+      <button class="action-btn danger" onclick="hideSelected()"><i class="fa-solid fa-eye-slash"></i> Ẩn Đi</button>
+      <button class="action-btn" onclick="xraySelected()"><i class="fa-solid fa-wand-magic-sparkles"></i> X-Ray</button>
+      <button class="action-btn" onclick="focusSelected()"><i class="fa-solid fa-crosshairs"></i> Cận Cảnh</button>
+    </div>
+  </aside>
+
+  <!-- ======================================================== -->
+  <!-- FLOATING BOTTOM 12 SYSTEMS DOCK                          -->
+  <!-- ======================================================== -->
+  <footer class="ca-bottom-bar">
+    
+    <!-- 1. Skeletal -->
+    <div class="ca-item active" id="btn-sys-skeletal" onclick="toggleSystem('skeletal')">
+      <div class="ca-status" id="status-skeletal">Bật</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="2"/><path d="M9 7h6v1.2H9zm-1.5 2.2h9v1.2h-9zm-1 2.2h11v1.2h-11zm1 2.2h9v1.2h-9zm1.5 2.2h6v1.2h-6zM11.5 7h1v13h-1z"/></svg>
+      </div>
+      <div class="ca-label">Hệ Xương</div>
+    </div>
+
+    <!-- 2. Connective T. -->
+    <div class="ca-item" id="btn-sys-connective" onclick="toggleSystem('connective')">
+      <div class="ca-status" id="status-connective">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M8 8.5h8l1.5 5h-1.8l-.7-3.5h-1.5v9h-2v-5h-3v5H7v-9H5.5L4.8 13.5H3z"/><circle cx="6" cy="9.5" r="1.2"/><circle cx="18" cy="9.5" r="1.2"/><circle cx="8" cy="18" r="1.2"/><circle cx="16" cy="18" r="1.2"/></svg>
+      </div>
+      <div class="ca-label">Khớp & Dây Chằng</div>
+    </div>
+
+    <!-- 3. Muscular (With Floating Stepper Widget) -->
+    <div class="ca-item" id="btn-sys-muscular" onclick="toggleMuscularSystem()">
+      <div class="ca-stepper-pill" id="muscular-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepMuscularLayer(1)" title="Tăng thêm lớp cơ (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepMuscularLayer(-1)" title="Bóc tách bớt lớp cơ (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
+      <div class="ca-status" id="status-muscular">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 7.5c1.5-.5 3.5-.8 5-.8s3.5.3 5 .8l1 4.5h-2l-.5-3c-1-.2-2-.3-3.5-.3s-2.5.1-3.5.3l-.5 3H6z"/><path d="M8.5 12h7v1.8h-7zm0 2.6h7v1.8h-7zm0 2.6h7v1.8h-7zm3.5-5.2v7"/></svg>
+      </div>
+      <div class="ca-label">Hệ Cơ Bắp</div>
+    </div>
+
+    <!-- 4. Arterial (With Floating Stepper Widget) -->
+    <div class="ca-item" id="btn-sys-arterial" onclick="toggleArterialSystem()">
+      <div class="ca-stepper-pill" id="arterial-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepArterialLayer(1)" title="Tăng lớp động mạch (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepArterialLayer(-1)" title="Giảm lớp động mạch (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
+      <div class="ca-status" id="status-arterial">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><path d="M12 7.5v12.5"/><path d="M10 11.5c-1 0-1.8.8-1.8 1.8 0 1.5 1.8 3.2 3.8 4.7 2-1.5 3.8-3.2 3.8-4.7 0-1-.8-1.8-1.8-1.8-.8 0-1.5.5-2 1.2-.5-.7-1.2-1.2-2-1.2z"/></svg>
+      </div>
+      <div class="ca-label">Động Mạch</div>
+    </div>
+
+    <!-- 5. Venous (With Floating Stepper Widget) -->
+    <div class="ca-item" id="btn-sys-venous" onclick="toggleVenousSystem()">
+      <div class="ca-stepper-pill" id="venous-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepVenousLayer(1)" title="Tăng lớp tĩnh mạch (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepVenousLayer(-1)" title="Giảm lớp tĩnh mạch (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
+      <div class="ca-status" id="status-venous">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><path d="M12 7v13"/><path d="M9.5 12l2.5-2.5 2.5 2.5"/><path d="M9.5 16l2.5-2.5 2.5 2.5"/></svg>
+      </div>
+      <div class="ca-label">Tĩnh Mạch</div>
+    </div>
+
+    <!-- 6. Lymphatic -->
+    <div class="ca-item" id="btn-sys-lymphatic" onclick="toggleSystem('lymphatic')">
+      <div class="ca-status" id="status-lymphatic">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><circle cx="12" cy="11" r="1.2"/><circle cx="10" cy="15" r="1.2"/><circle cx="14" cy="15" r="1.2"/><circle cx="12" cy="18" r="1.2"/><path d="M12 8v10M10 15l2-4 2 4"/></svg>
+      </div>
+      <div class="ca-label">Bạch Huyết</div>
+    </div>
+
+    <!-- 7. Nervous -->
+    <div class="ca-item" id="btn-sys-nervous" onclick="toggleSystem('nervous')">
+      <div class="ca-status" id="status-nervous">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.8" r="2.2"/><path d="M11.5 6.5h1v13.5h-1z"/><path d="M8.5 9.5l3.5 2 3.5-2m-7 4.5l3.5 2 3.5-2m-6 4l2.5 1.5 2.5-1.5"/></svg>
+      </div>
+      <div class="ca-label">Thần Kinh</div>
+    </div>
+
+    <!-- 8. Respiratory -->
+    <div class="ca-item" id="btn-sys-respiratory" onclick="toggleSystem('respiratory')">
+      <div class="ca-status" id="status-respiratory">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M11.2 6.5h1.6v3h-1.6z"/><path d="M10.8 9.5c-1.8 0-3.3 1.5-3.3 3.5 0 2.5 1.5 4.5 3.3 5v-8.5zm2.4 0v8.5c1.8-.5 3.3-2.5 3.3-5 0-2-1.5-3.5-3.3-3.5z"/></svg>
+      </div>
+      <div class="ca-label">Hô Hấp</div>
+    </div>
+
+    <!-- 9. Digestive -->
+    <div class="ca-item" id="btn-sys-digestive" onclick="toggleSystem('digestive')">
+      <div class="ca-status" id="status-digestive">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M11.5 6.5h1v3.5h-1z"/><path d="M10 9.5c1.5 0 3 .5 3 2s-1 2.5-2 2.5c-.8 0-1.5-.5-1.5-1.5 0-1.2 1.2-1.5 2.5-1.5"/><path d="M9 14.5c0-.8.7-1.5 1.5-1.5h3c.8 0 1.5.7 1.5 1.5v1c0 .8-.7 1.5-1.5 1.5h-3c-.8 0-1.5-.7-1.5-1.5z"/><path d="M8.5 18h7v1.5h-7z"/></svg>
+      </div>
+      <div class="ca-label">Tiêu Hóa</div>
+    </div>
+
+    <!-- 10. Endocrine -->
+    <div class="ca-item" id="btn-sys-endocrine" onclick="toggleSystem('endocrine')">
+      <div class="ca-status" id="status-endocrine">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><circle cx="12" cy="7" r="1.2"/><circle cx="10" cy="13" r="1"/><circle cx="14" cy="13" r="1"/><path d="M8 8.5h8l1 5h-2l-.5-3H9.5l-.5 3H7z"/></svg>
+      </div>
+      <div class="ca-label">Nội Tiết</div>
+    </div>
+
+    <!-- 11. Urogenital -->
+    <div class="ca-item" id="btn-sys-urogenital" onclick="toggleSystem('urogenital')">
+      <div class="ca-status" id="status-urogenital">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M9 11.5c-1 0-1.5.8-1.5 1.8s.5 1.8 1.5 1.8c.8 0 1-.5 1-1.8s-.2-1.8-1-1.8zm6 0c-.8 0-1 .5-1 1.8s.2 1.8 1 1.8c1 0 1.5-.8 1.5-1.8s-.5-1.8-1.5-1.8z"/><path d="M10 14.5l1.5 3.5h1l1.5-3.5"/><path d="M10.5 18c0 1.2.7 2 1.5 2s1.5-.8 1.5-2h-3z"/></svg>
+      </div>
+      <div class="ca-label">Tiết Niệu</div>
+    </div>
+
+    <!-- 12. Integumentary -->
+    <div class="ca-item" id="btn-sys-integumentary" onclick="toggleSystem('integumentary')">
+      <div class="ca-status" id="status-integumentary">Tắt</div>
+      <div class="ca-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="2"/><path d="M7 8c2.5-1.2 7.5-1.2 10 0l1 5-2 1.5-.5 5.5h-2v-4h-3v4H8.5l-.5-5.5-2-1.5z"/></svg>
+      </div>
+      <div class="ca-label">Hệ Da</div>
+    </div>
+
+  </footer>
+
+  <!-- Local Three.js Libraries -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+  <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
+
+  <!-- Application Logic -->
+  <script src="app.js?v=20260913_v26"></script>
+</body>
+</html>

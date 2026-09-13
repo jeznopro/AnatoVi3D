@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.pyc
+
+# Local Environment & Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Dev scratch scripts & reports
+test_*.js
+test_*.html
+*.txt
+report_*.json
+bad_*.json
+inspection_*.json
+distinct_words.json
+english_leftovers.json
+final_*.json
+leftover_*.json
+models_untranslated.json
+muscles_*.json
+remaining_check.json
+suspicious_*.json
+unhandled_*.json
+unique_*.json
+untranslated*.json
+cardio_*.json
+base_vessels_*.json
+all_*.json
+
+# Translation & migration scratch scripts
+translate_*.py
+build_*.py
+fix*.py
+merge.py
+perfect_*.py
+run_full_*.py
+structural_*.py
+vocab_ext.py
+extra_*.py
+find_*.py
+check*.py
+add_cache_buster.py
+apply_vessel_fixes.py
+
+# Local screenshots & temp media
+New folder/
+*.log
+
+dict*.json
+full_translated_meshes.json
+generate_all_translations.py
