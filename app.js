@@ -280,6 +280,12 @@ async function loadAnatomyData() {
           anatomyData._lowerTranslations[k.toLowerCase().trim()] = anatomyData.translations[k];
         }
       }
+      anatomyData._lowerLatin = {};
+      if (anatomyData.latin) {
+        for (let k in anatomyData.latin) {
+          anatomyData._lowerLatin[k.toLowerCase().trim()] = anatomyData.latin[k];
+        }
+      }
     }
   } catch (e) {
     console.warn("Could not fetch anatomy_data.json:", e);
@@ -688,6 +694,37 @@ function translateToVietnameseMedical(name) {
   vi = vi.replace(/thoracic\s+aorta/gi, 'Động mạch chủ ngực');
   vi = vi.replace(/aorta/gi, 'Động mạch chủ');
 
+  // Specific Vascular Systems
+  vi = vi.replace(/thoraco[- ]?acromial\s+artery/gi, 'Động mạch ngực - cùng vai');
+  vi = vi.replace(/suprascapular\s+artery/gi, 'Động mạch trên vai');
+  vi = vi.replace(/thoracodorsal\s+artery/gi, 'Động mạch ngực - lưng');
+  vi = vi.replace(/subscapular\s+artery/gi, 'Động mạch dưới vai');
+  vi = vi.replace(/common\s+carotid\s+artery/gi, 'Động mạch cảnh chung');
+  vi = vi.replace(/internal\s+carotid\s+artery/gi, 'Động mạch cảnh trong');
+  vi = vi.replace(/external\s+carotid\s+artery/gi, 'Động mạch cảnh ngoài');
+  vi = vi.replace(/middle\s+meningeal\s+artery/gi, 'Động mạch màng não giữa');
+  vi = vi.replace(/basilar\s+artery/gi, 'Động mạch nền');
+  vi = vi.replace(/(?:deep\s+brachial|profunda\s+brachii)\s+artery/gi, 'Động mạch cánh tay sâu');
+  vi = vi.replace(/common\s+interosseous\s+artery/gi, 'Động mạch gian cốt chung');
+  vi = vi.replace(/anterior\s+interosseous\s+artery/gi, 'Động mạch gian cốt trước');
+  vi = vi.replace(/posterior\s+interosseous\s+artery/gi, 'Động mạch gian cốt sau');
+  vi = vi.replace(/superior\s+gluteal\s+artery/gi, 'Động mạch mông trên');
+  vi = vi.replace(/inferior\s+gluteal\s+artery/gi, 'Động mạch mông dưới');
+  vi = vi.replace(/deep\s+circumflex\s+iliac\s+artery/gi, 'Động mạch mũ chậu sâu');
+  vi = vi.replace(/superior\s+epigastric\s+artery/gi, 'Động mạch thượng vị trên');
+  vi = vi.replace(/inferior\s+epigastric\s+artery/gi, 'Động mạch thượng vị dưới');
+  vi = vi.replace(/subcostal\s+artery/gi, 'Động mạch dưới sườn');
+
+  vi = vi.replace(/\bthoraco[- ]?acromial\b/gi, 'ngực - cùng vai');
+  vi = vi.replace(/\bsuprascapular\b/gi, 'trên vai');
+  vi = vi.replace(/\bthoracodorsal\b/gi, 'ngực - lưng');
+  vi = vi.replace(/\bsubscapular\b/gi, 'dưới vai');
+  vi = vi.replace(/\binterosseous\b/gi, 'gian cốt');
+  vi = vi.replace(/\bperforating\b/gi, 'xuyên');
+  vi = vi.replace(/\bcarotid\b/gi, 'cảnh');
+  vi = vi.replace(/\bbasilar\b/gi, 'nền');
+  vi = vi.replace(/\bacromial\b/gi, 'cùng vai');
+
   vi = vi.replace(/\bartery\b/gi, 'Động mạch');
   vi = vi.replace(/\barteries\b/gi, 'Các động mạch');
   vi = vi.replace(/\bvein\b/gi, 'Tĩnh mạch');
@@ -722,11 +759,22 @@ function translateToVietnameseMedical(name) {
 
 function translateToLatinMedical(name) {
   if (!name) return '';
-  const low = name.trim().toLowerCase();
+  const raw = name.trim();
+  const low = raw.toLowerCase();
+
+  // 1. Direct Latin database lookup
+  if (anatomyData && anatomyData.latin) {
+    if (anatomyData.latin[raw]) return anatomyData.latin[raw];
+    if (anatomyData._lowerLatin && anatomyData._lowerLatin[low]) return anatomyData._lowerLatin[low];
+  }
+
+  // 2. Clinical dictionary lookup
   if (MEDICAL_TRANSLATIONS[low] && MEDICAL_TRANSLATIONS[low].latin) {
     return MEDICAL_TRANSLATIONS[low].latin;
   }
-  let lat = name.trim();
+
+  // 3. Fallback regex transformations
+  let lat = raw;
   lat = lat.replace(/\bartery\b/gi, 'Arteria');
   lat = lat.replace(/\barteries\b/gi, 'Arteriae');
   lat = lat.replace(/\bvein\b/gi, 'Vena');
@@ -1356,10 +1404,26 @@ function setupMesh(mesh, sourceFile) {
 
   // Resolve Latin Name
   let latinName = cleanName;
-  for (let key in anatomyData.clinical) {
-    if (nameLower.includes(key.toLowerCase())) {
-      latinName = anatomyData.clinical[key].latin;
-      break;
+  if (anatomyData.latin) {
+    if (anatomyData.latin[cleanName]) {
+      latinName = anatomyData.latin[cleanName];
+    } else if (anatomyData.latin[noParens]) {
+      latinName = anatomyData.latin[noParens];
+    } else if (anatomyData._lowerLatin) {
+      if (anatomyData._lowerLatin[lowClean]) {
+        latinName = anatomyData._lowerLatin[lowClean];
+      } else if (anatomyData._lowerLatin[lowNoParens]) {
+        latinName = anatomyData._lowerLatin[lowNoParens];
+      }
+    }
+  }
+
+  if (latinName === cleanName) {
+    for (let key in anatomyData.clinical) {
+      if (nameLower.includes(key.toLowerCase())) {
+        latinName = anatomyData.clinical[key].latin;
+        break;
+      }
     }
   }
   if (latinName === cleanName) {
@@ -1524,10 +1588,22 @@ function openInspector(mesh) {
   systemTag.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${sys ? sys.viName : "Giải Phẫu"}`;
 
   let desc = "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).";
+  const lowCleanName = u.cleanName.toLowerCase().trim();
+  // 1. Exact match in clinical
   for (let k in anatomyData.clinical) {
-    if (u.cleanName.toLowerCase().includes(k.toLowerCase())) {
+    if (lowCleanName === k.toLowerCase().trim()) {
       desc = anatomyData.clinical[k].desc;
       break;
+    }
+  }
+  // 2. Word boundary match
+  if (desc === "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).") {
+    for (let k in anatomyData.clinical) {
+      const reg = new RegExp(`\\b${k.trim()}\\b`, 'i');
+      if (reg.test(lowCleanName)) {
+        desc = anatomyData.clinical[k].desc;
+        break;
+      }
     }
   }
   descCard.textContent = desc;
