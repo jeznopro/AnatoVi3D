@@ -854,6 +854,14 @@ function setupMesh(mesh, sourceFile) {
   const nameLower = cleanName.toLowerCase();
   const anyMatch = (str, arr) => arr.some(k => str.includes(k));
 
+  // Fix outlier scaling (e.g. Pleura in visceral.glb) and stray nodes
+  if (nameLower.includes('pleura') || mesh.scale.x > 2.0) {
+    mesh.scale.set(1, 1, 1);
+  }
+  if (mesh.position.y < -0.8 || mesh.position.y > 2.6 || Math.abs(mesh.position.x) > 2.0) {
+    mesh.visible = false;
+  }
+
   let targetSystem = 'skeletal';
   let matConfig = PALETTE.bone;
   let muscleLayer = 3;
@@ -1435,7 +1443,16 @@ function setupEvents() {
     const intersects = raycaster.intersectObjects(visibleMeshes);
 
     if (intersects.length > 0) {
-      selectOrgan(intersects[0].object);
+      const clickedMesh = intersects[0].object;
+      selectOrgan(clickedMesh);
+      if (isStudyMode) {
+        if (!isMeshInStudy(clickedMesh)) {
+          addMeshToStudy(clickedMesh);
+        } else {
+          const idx = studyList.findIndex(s => s.cleanName.toLowerCase() === clickedMesh.userData.cleanName.toLowerCase());
+          if (idx >= 0) goToStudyItem(idx);
+        }
+      }
     } else {
       closeInspector();
     }
@@ -1515,6 +1532,7 @@ function openInspector(mesh) {
   }
   descCard.textContent = desc;
 
+  updateInspectStudyButton();
   inspector.style.display = 'flex';
 }
 
@@ -3247,3 +3265,712 @@ function viewCeliacInFullBody() {
     smoothMoveCamera(new THREE.Vector3(0, 1.15, 0.6), new THREE.Vector3(0, 1.15, 0));
   }
 }
+
+// ========================================================
+// CHẾ ĐỘ HỌC TẬP TÙY CHỌN (SELECTIVE STUDY & FLASHCARD MODE)
+// ========================================================
+let isStudyMode = false;
+let studyList = []; // Array of { cleanName, viName, latinName, enName, system, meshRef }
+let currentStudyIndex = 0;
+let studyDisplayMode = 'ghost'; // 'ghost' | 'isolate' | 'normal'
+let studyMemorized = new Set();
+let isFlashcardAnswerRevealed = false;
+let isStudyPanelCollapsed = false;
+let studyActiveTab = 'list';
+
+function initStudyMode() {
+  loadStudyFromStorage();
+  initStudySearch();
+  renderStudyUI();
+}
+
+function initStudySearch() {
+  const input = document.getElementById('study-search-input');
+  const resultsEl = document.getElementById('study-search-results');
+  if (!input || !resultsEl) return;
+
+  input.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (!query || query.length < 2) {
+      resultsEl.style.display = 'none';
+      return;
+    }
+
+    const matched = [];
+    const seen = new Set();
+
+    for (let m of allMeshes) {
+      if (!m.userData || !m.userData.cleanName) continue;
+      const cn = m.userData.cleanName.toLowerCase();
+      const vi = (m.userData.viName || '').toLowerCase();
+      const lat = (m.userData.latinName || '').toLowerCase();
+      const en = (m.userData.enName || '').toLowerCase();
+
+      if (cn.includes(query) || vi.includes(query) || lat.includes(query) || en.includes(query)) {
+        if (!seen.has(m.userData.cleanName)) {
+          seen.add(m.userData.cleanName);
+          matched.push(m);
+          if (matched.length >= 8) break;
+        }
+      }
+    }
+
+    if (matched.length === 0) {
+      resultsEl.innerHTML = '<div style="padding: 10px; font-size: 0.76rem; color: #64748b; text-align: center;">Không tìm thấy chi tiết phù hợp</div>';
+      resultsEl.style.display = 'block';
+      return;
+    }
+
+    resultsEl.innerHTML = matched.map(m => {
+      const inStudy = isMeshInStudy(m);
+      return `
+        <div class="search-item" onclick="onSelectStudySearchResult('${m.userData.cleanName.replace(/'/g, "\\'")}')" style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div class="search-item-title">${m.userData.viName || m.userData.cleanName}</div>
+            <div class="search-item-sub">${m.userData.latinName || m.userData.enName}</div>
+          </div>
+          <span style="font-size: 0.70rem; font-weight: 700; color: ${inStudy ? '#10b981' : '#facc15'};">${inStudy ? '✓ Đã có' : '+ Thêm'}</span>
+        </div>
+      `;
+    }).join('');
+    resultsEl.style.display = 'block';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.study-search-wrap')) {
+      resultsEl.style.display = 'none';
+    }
+  });
+}
+
+function onSelectStudySearchResult(cleanName) {
+  const mesh = allMeshes.find(m => m.userData.cleanName && m.userData.cleanName.toLowerCase() === cleanName.toLowerCase());
+  if (mesh) {
+    if (!isMeshInStudy(mesh)) {
+      addMeshToStudy(mesh);
+    } else {
+      showStudyToast(`"${mesh.userData.viName || cleanName}" đã có trong bộ học!`);
+    }
+    selectOrgan(mesh);
+    focusSelected();
+  }
+  const input = document.getElementById('study-search-input');
+  const resultsEl = document.getElementById('study-search-results');
+  if (input) input.value = '';
+  if (resultsEl) resultsEl.style.display = 'none';
+}
+
+function toggleStudyMode() {
+  if (isStudyMode) {
+    closeStudyMode();
+  } else {
+    openStudyMode();
+  }
+}
+
+function openStudyMode() {
+  isStudyMode = true;
+  const btn = document.getElementById('btn-study-mode');
+  if (btn) btn.classList.add('active');
+
+  const panel = document.getElementById('study-panel');
+  if (panel) {
+    panel.classList.remove('hidden');
+    panel.classList.remove('minimized');
+    isStudyPanelCollapsed = false;
+  }
+
+  if (studyList.length === 0) {
+    loadStudyFromStorage();
+  }
+  if (studyList.length === 0) {
+    loadStudyPreset('cardio', false);
+  }
+
+  applyStudyVisuals();
+  renderStudyUI();
+  updateInspectStudyButton();
+  showStudyToast('🎓 Đã bật Chế Độ Học Tập: Nhấp chọn chi tiết 3D để thêm vào bộ học!');
+}
+
+function closeStudyMode() {
+  isStudyMode = false;
+  const btn = document.getElementById('btn-study-mode');
+  if (btn) btn.classList.remove('active');
+
+  const panel = document.getElementById('study-panel');
+  if (panel) panel.classList.add('hidden');
+
+  resetStudyVisuals();
+  updateInspectStudyButton();
+  showStudyToast('Đã tắt Chế Độ Học Tập');
+}
+
+function toggleStudyPanelCollapse() {
+  const panel = document.getElementById('study-panel');
+  const icon = document.getElementById('icon-study-collapse');
+  if (!panel) return;
+  isStudyPanelCollapsed = !isStudyPanelCollapsed;
+  panel.classList.toggle('minimized', isStudyPanelCollapsed);
+  if (icon) {
+    icon.className = isStudyPanelCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+  }
+}
+
+function isMeshInStudy(mesh) {
+  if (!mesh || !mesh.userData || !mesh.userData.cleanName) return false;
+  const target = mesh.userData.cleanName.toLowerCase();
+  return studyList.some(s => s.cleanName.toLowerCase() === target);
+}
+
+function addMeshToStudy(mesh) {
+  if (!mesh || !mesh.userData || !mesh.userData.cleanName) return;
+  if (isMeshInStudy(mesh)) {
+    showStudyToast(`"${mesh.userData.viName || mesh.userData.cleanName}" đã có trong bộ học!`);
+    return;
+  }
+
+  studyList.push({
+    cleanName: mesh.userData.cleanName,
+    viName: mesh.userData.viName || mesh.userData.cleanName,
+    latinName: mesh.userData.latinName || mesh.userData.cleanName,
+    enName: mesh.userData.enName || mesh.userData.cleanName,
+    system: mesh.userData.system || 'skeletal',
+    meshRef: mesh
+  });
+
+  saveStudyToStorage();
+  applyStudyVisuals();
+  renderStudyUI();
+  updateInspectStudyButton();
+  showStudyToast(`✓ Đã thêm "${mesh.userData.viName || mesh.userData.cleanName}" vào bộ học`);
+}
+
+function removeMeshFromStudy(cleanName) {
+  const cName = cleanName.toLowerCase();
+  studyList = studyList.filter(s => s.cleanName.toLowerCase() !== cName);
+  studyMemorized.delete(cleanName);
+
+  if (currentStudyIndex >= studyList.length) {
+    currentStudyIndex = Math.max(0, studyList.length - 1);
+  }
+
+  saveStudyToStorage();
+  applyStudyVisuals();
+  renderStudyUI();
+  updateInspectStudyButton();
+}
+
+function clearStudyList() {
+  studyList = [];
+  studyMemorized.clear();
+  currentStudyIndex = 0;
+  saveStudyToStorage();
+  applyStudyVisuals();
+  renderStudyUI();
+  updateInspectStudyButton();
+  showStudyToast('Đã xóa danh sách học tập');
+}
+
+function toggleInspectStudy() {
+  if (!selectedMesh) return;
+  if (isMeshInStudy(selectedMesh)) {
+    removeMeshFromStudy(selectedMesh.userData.cleanName);
+    showStudyToast(`Đã bỏ "${selectedMesh.userData.viName || selectedMesh.userData.cleanName}" khỏi bộ học`);
+  } else {
+    if (!isStudyMode) openStudyMode();
+    addMeshToStudy(selectedMesh);
+  }
+  updateInspectStudyButton();
+}
+
+function updateInspectStudyButton() {
+  const btn = document.getElementById('btn-inspect-add-study');
+  const txt = document.getElementById('txt-inspect-add-study');
+  const icon = document.getElementById('icon-inspect-study');
+  if (!btn || !txt || !icon) return;
+
+  if (selectedMesh && isMeshInStudy(selectedMesh)) {
+    btn.style.background = 'rgba(239, 68, 68, 0.15)';
+    btn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    btn.style.color = '#f87171';
+    icon.className = 'fa-solid fa-bookmark';
+    txt.textContent = '✓ Đã trong Bộ Học (Bấm để bỏ)';
+  } else {
+    btn.style.background = 'rgba(250, 204, 21, 0.12)';
+    btn.style.borderColor = 'rgba(250, 204, 21, 0.4)';
+    btn.style.color = '#fde047';
+    icon.className = 'fa-regular fa-bookmark';
+    txt.textContent = '+ Thêm Vào Bộ Học';
+  }
+}
+
+function setStudyDisplayMode(mode) {
+  studyDisplayMode = mode;
+  ['ghost', 'isolate', 'normal'].forEach(m => {
+    const el = document.getElementById(`opt-study-${m}`);
+    if (el) el.classList.toggle('active', m === mode);
+  });
+  applyStudyVisuals();
+}
+
+function applyStudyVisuals() {
+  if (!isStudyMode || studyList.length === 0) {
+    resetStudyVisuals();
+    return;
+  }
+
+  const studyMap = new Map();
+  studyList.forEach((s, idx) => {
+    studyMap.set(s.cleanName.toLowerCase(), idx);
+  });
+
+  allMeshes.forEach(m => {
+    if (m.userData.isHidden) {
+      m.visible = false;
+      return;
+    }
+
+    const name = (m.userData.cleanName || '').toLowerCase();
+    const isStudy = studyMap.has(name);
+    const isCurrent = isStudy && (studyMap.get(name) === currentStudyIndex);
+
+    if (studyDisplayMode === 'isolate') {
+      m.visible = isStudy;
+      if (isStudy) {
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+        if (isCurrent) {
+          m.material.emissive.setHex(0x5a4800);
+          m.material.emissiveIntensity = 0.6;
+        } else {
+          m.material.emissive.setHex(0x000000);
+          m.material.emissiveIntensity = 0.0;
+        }
+      }
+    } else if (studyDisplayMode === 'ghost') {
+      m.visible = true;
+      if (isStudy) {
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+        if (isCurrent) {
+          m.material.emissive.setHex(0x5a4800);
+          m.material.emissiveIntensity = 0.7;
+        } else {
+          m.material.emissive.setHex(0x2a2000);
+          m.material.emissiveIntensity = 0.25;
+        }
+      } else {
+        m.material.transparent = true;
+        m.material.opacity = 0.12;
+        m.material.emissive.setHex(0x000000);
+        m.material.emissiveIntensity = 0.0;
+      }
+    } else { // 'normal'
+      m.visible = true;
+      m.material.transparent = m.userData.origTransparent || false;
+      m.material.opacity = m.userData.origOpacity !== undefined ? m.userData.origOpacity : 1.0;
+      if (isStudy) {
+        if (isCurrent) {
+          m.material.emissive.setHex(0x5a4800);
+          m.material.emissiveIntensity = 0.7;
+        } else {
+          m.material.emissive.setHex(0x38bdf8);
+          m.material.emissiveIntensity = 0.35;
+        }
+      } else {
+        m.material.emissive.setHex(0x000000);
+        m.material.emissiveIntensity = 0.0;
+      }
+    }
+  });
+}
+
+function resetStudyVisuals() {
+  allMeshes.forEach(m => {
+    if (m.userData.isHidden) {
+      m.visible = false;
+      return;
+    }
+    const sys = SYSTEMS_CONFIG[m.userData.system];
+    m.visible = sys ? sys.active : true;
+    m.material.transparent = m.userData.origTransparent || false;
+    m.material.opacity = m.userData.origOpacity !== undefined ? m.userData.origOpacity : 1.0;
+    const origEmissive = (m.userData.system === 'nervous' && !m.userData.cleanName.toLowerCase().includes('brain')) ? 0x2c2200 : 0x000000;
+    m.material.emissive.setHex(origEmissive);
+    m.material.emissiveIntensity = origEmissive ? 0.35 : 0.0;
+    if (m !== selectedMesh) {
+      m.material.color.setHex(m.userData.originalColor);
+    }
+  });
+}
+
+function switchStudyTab(tabName) {
+  studyActiveTab = tabName;
+  const tabList = document.getElementById('tab-btn-study-list');
+  const tabQuiz = document.getElementById('tab-btn-study-quiz');
+  const contentList = document.getElementById('study-content-list');
+  const contentQuiz = document.getElementById('study-content-quiz');
+
+  if (tabName === 'quiz') {
+    if (tabList) tabList.classList.remove('active');
+    if (tabQuiz) tabQuiz.classList.add('active');
+    if (contentList) contentList.style.display = 'none';
+    if (contentQuiz) contentQuiz.style.display = 'flex';
+    isFlashcardAnswerRevealed = false;
+    if (studyList.length > 0) {
+      goToStudyItem(currentStudyIndex);
+    }
+  } else {
+    if (tabList) tabList.classList.add('active');
+    if (tabQuiz) tabQuiz.classList.remove('active');
+    if (contentList) contentList.style.display = 'flex';
+    if (contentQuiz) contentQuiz.style.display = 'none';
+  }
+}
+
+function startStudyQuiz() {
+  if (studyList.length === 0) {
+    showStudyToast('⚠️ Hãy thêm ít nhất 1 chi tiết để bắt đầu ôn luyện!');
+    return;
+  }
+  switchStudyTab('quiz');
+}
+
+function goToStudyItem(index) {
+  if (studyList.length === 0) return;
+  currentStudyIndex = Math.max(0, Math.min(index, studyList.length - 1));
+  const item = studyList[currentStudyIndex];
+
+  // Resolve mesh
+  const mesh = item.meshRef || allMeshes.find(m => m.userData.cleanName && m.userData.cleanName.toLowerCase() === item.cleanName.toLowerCase());
+  if (mesh) {
+    selectOrgan(mesh);
+    focusSelected();
+  }
+
+  // Reset Flashcard View
+  isFlashcardAnswerRevealed = false;
+  const ansBox = document.getElementById('quiz-ans-box');
+  const btnRev = document.getElementById('btn-quiz-reveal');
+  const flashcard = document.getElementById('study-flashcard');
+  if (ansBox) ansBox.style.display = 'none';
+  if (btnRev) btnRev.style.display = 'inline-flex';
+  if (flashcard) flashcard.classList.remove('revealed');
+
+  // Fill content
+  const badgeSys = document.getElementById('quiz-badge-sys');
+  const ansVi = document.getElementById('quiz-ans-vi');
+  const ansLatin = document.getElementById('quiz-ans-latin');
+  const ansDesc = document.getElementById('quiz-ans-desc');
+
+  const sys = SYSTEMS_CONFIG[item.system];
+  if (badgeSys) badgeSys.innerHTML = `<i class="fa-solid fa-dna"></i> ${sys ? sys.viName : 'Giải Phẫu'}`;
+  if (ansVi) ansVi.textContent = item.viName;
+  if (ansLatin) ansLatin.textContent = `${item.latinName} • ${item.enName}`;
+
+  let desc = "Cấu trúc giải phẫu chuẩn quốc tế Terminologia Anatomica.";
+  for (let k in anatomyData.clinical) {
+    if (item.cleanName.toLowerCase().includes(k.toLowerCase())) {
+      desc = anatomyData.clinical[k].desc;
+      break;
+    }
+  }
+  if (ansDesc) ansDesc.textContent = desc;
+
+  applyStudyVisuals();
+  renderStudyUI();
+}
+
+function nextStudyItem() {
+  if (currentStudyIndex < studyList.length - 1) {
+    goToStudyItem(currentStudyIndex + 1);
+  } else {
+    showStudyToast('🎉 Bạn đã hoàn thành lượt ôn tập toàn bộ chi tiết!');
+  }
+}
+
+function prevStudyItem() {
+  if (currentStudyIndex > 0) {
+    goToStudyItem(currentStudyIndex - 1);
+  }
+}
+
+function toggleFlashcardAnswer() {
+  isFlashcardAnswerRevealed = !isFlashcardAnswerRevealed;
+  const ansBox = document.getElementById('quiz-ans-box');
+  const btnRev = document.getElementById('btn-quiz-reveal');
+  const flashcard = document.getElementById('study-flashcard');
+
+  if (isFlashcardAnswerRevealed) {
+    if (ansBox) ansBox.style.display = 'flex';
+    if (btnRev) btnRev.style.display = 'none';
+    if (flashcard) flashcard.classList.add('revealed');
+  } else {
+    if (ansBox) ansBox.style.display = 'none';
+    if (btnRev) btnRev.style.display = 'inline-flex';
+    if (flashcard) flashcard.classList.remove('revealed');
+  }
+}
+
+function markStudyItem(isMemorized) {
+  if (studyList.length === 0) return;
+  const item = studyList[currentStudyIndex];
+  if (isMemorized) {
+    studyMemorized.add(item.cleanName);
+    showStudyToast(`✓ Đã ghi nhớ: ${item.viName}`);
+  } else {
+    studyMemorized.delete(item.cleanName);
+    showStudyToast(`Đã chuyển ${item.viName} vào mục cần ôn lại`);
+  }
+  saveStudyToStorage();
+  renderStudyUI();
+
+  // Auto advance to next item
+  setTimeout(() => {
+    if (currentStudyIndex < studyList.length - 1) {
+      nextStudyItem();
+    }
+  }, 400);
+}
+
+function speakCurrentStudyTerm() {
+  if (studyList.length === 0) return;
+  const item = studyList[currentStudyIndex];
+  speakAnatomyTerm(item.viName, 'vi-VN');
+}
+
+function speakAnatomyTerm(text, lang = 'vi-VN') {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = 0.9;
+  window.speechSynthesis.speak(utter);
+}
+
+function renderStudyUI() {
+  const count = studyList.length;
+
+  // Header badges
+  const navBadge = document.getElementById('study-badge');
+  if (navBadge) {
+    navBadge.textContent = count;
+    navBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+
+  const panelCount = document.getElementById('study-panel-count');
+  if (panelCount) panelCount.textContent = `${count} chi tiết`;
+
+  const tabCount = document.getElementById('study-tab-count');
+  if (tabCount) tabCount.textContent = count;
+
+  // Stepper indicator
+  const stepper = document.getElementById('study-stepper-indicator');
+  if (stepper) {
+    stepper.textContent = count > 0 ? `${currentStudyIndex + 1} / ${count}` : '0 / 0';
+  }
+
+  const btnPrev = document.getElementById('btn-study-prev');
+  const btnNext = document.getElementById('btn-study-next');
+  if (btnPrev) btnPrev.disabled = (currentStudyIndex <= 0);
+  if (btnNext) btnNext.disabled = (currentStudyIndex >= count - 1);
+
+  // Quiz progress
+  const memCount = studyMemorized.size;
+  const pct = count > 0 ? Math.round((memCount / count) * 100) : 0;
+
+  const stepInfo = document.getElementById('quiz-step-info');
+  if (stepInfo) stepInfo.textContent = count > 0 ? `Chi tiết ${currentStudyIndex + 1} / ${count}` : '0 / 0';
+
+  const statInfo = document.getElementById('quiz-stat-info');
+  if (statInfo) statInfo.textContent = `Đã thuộc: ${memCount}/${count} (${pct}%)`;
+
+  const progFill = document.getElementById('quiz-progress-fill');
+  if (progFill) progFill.style.width = `${pct}%`;
+
+  // Render items list
+  const listEl = document.getElementById('study-items-list');
+  if (!listEl) return;
+
+  if (count === 0) {
+    listEl.innerHTML = `
+      <div class="study-empty-state">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <div style="font-weight: 700; color: #cbd5e1;">Chưa có chi tiết nào</div>
+        <div style="font-size: 0.74rem;">Nhấp vào bất kỳ cơ quan 3D trên màn hình, hoặc chọn một Bộ mẫu phía trên để bắt đầu học!</div>
+      </div>
+    `;
+    return;
+  }
+
+  const sysColors = {
+    skeletal: '#e2d5a8', connective: '#38bdf8', muscular: '#f43f5e',
+    arterial: '#ef4444', venous: '#3b82f6', lymphatic: '#10b981',
+    nervous: '#f59e0b', respiratory: '#06b6d4', digestive: '#f97316',
+    endocrine: '#8b5cf6', urogenital: '#a855f7', integumentary: '#ec4899'
+  };
+
+  listEl.innerHTML = studyList.map((item, idx) => {
+    const isCur = (idx === currentStudyIndex);
+    const isMem = studyMemorized.has(item.cleanName);
+    const dotColor = sysColors[item.system] || '#facc15';
+
+    return `
+      <div class="study-item-card ${isCur ? 'current' : ''}" onclick="goToStudyItem(${idx})">
+        <div class="study-item-dot" style="background: ${dotColor};" title="Hệ ${item.system}"></div>
+        <div class="study-item-meta">
+          <div class="study-item-title">
+            ${isMem ? '<i class="fa-solid fa-circle-check" style="color:#10b981; margin-right:4px;"></i>' : ''}
+            ${item.viName}
+          </div>
+          <div class="study-item-sub">${item.latinName || item.enName}</div>
+        </div>
+        <div class="study-item-actions" onclick="event.stopPropagation();">
+          <button class="study-btn-del" onclick="removeMeshFromStudy('${item.cleanName.replace(/'/g, "\\'")}')" title="Xóa khỏi bộ học"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function loadStudyPreset(presetKey, notify = true) {
+  const presetConfig = {
+    cardio: {
+      systems: ['skeletal', 'arterial', 'venous'],
+      queries: ['Heart', 'Arch of aorta', 'Superior vena cava', 'Pulmonary trunk', 'Ascending aorta', 'Thoracic aorta']
+    },
+    visceral: {
+      systems: ['skeletal', 'digestive'],
+      queries: ['Stomach', 'Liver', 'Gallbladder', 'Pancreas', 'Spleen', 'Duodenum']
+    },
+    nervous: {
+      systems: ['skeletal', 'nervous'],
+      queries: ['Brain', 'Spinal cord', 'Sciatic nerve', 'Optic nerve', 'Vagus nerve']
+    },
+    arm: {
+      systems: ['skeletal', 'muscular'],
+      queries: ['Humerus', 'Radius', 'Ulna', 'Biceps brachii', 'Triceps brachii', 'Deltoid']
+    },
+    leg: {
+      systems: ['skeletal', 'muscular', 'connective'],
+      queries: ['Femur', 'Patella', 'Tibia', 'Fibula', 'Quadriceps femoris', 'Gastrocnemius']
+    },
+    skull: {
+      systems: ['skeletal'],
+      queries: ['Frontal bone', 'Parietal bone', 'Occipital bone', 'Temporal bone', 'Mandible', 'Maxilla']
+    }
+  };
+
+  const cfg = presetConfig[presetKey];
+  if (!cfg) return;
+
+  if (cfg.systems) {
+    cfg.systems.forEach(s => {
+      if (SYSTEMS_CONFIG[s]) SYSTEMS_CONFIG[s].active = true;
+    });
+    updateBottomBarUI();
+    applyAllSystemsVisibility();
+  }
+
+  studyList = [];
+  studyMemorized.clear();
+
+  cfg.queries.forEach(q => {
+    const qLower = q.toLowerCase();
+    const mesh = allMeshes.find(m => {
+      const cn = (m.userData.cleanName || '').toLowerCase();
+      const vi = (m.userData.viName || '').toLowerCase();
+      const en = (m.userData.enName || '').toLowerCase();
+      return cn.includes(qLower) || vi.includes(qLower) || en.includes(qLower);
+    });
+
+    if (mesh && !isMeshInStudy(mesh)) {
+      studyList.push({
+        cleanName: mesh.userData.cleanName,
+        viName: mesh.userData.viName || mesh.userData.cleanName,
+        latinName: mesh.userData.latinName || mesh.userData.cleanName,
+        enName: mesh.userData.enName || mesh.userData.cleanName,
+        system: mesh.userData.system || 'skeletal',
+        meshRef: mesh
+      });
+    }
+  });
+
+  currentStudyIndex = 0;
+  saveStudyToStorage();
+  applyStudyVisuals();
+  renderStudyUI();
+  updateInspectStudyButton();
+
+  if (studyList.length > 0) {
+    goToStudyItem(0);
+  }
+
+  if (notify) {
+    showStudyToast(`Đã nạp bộ học: ${studyList.length} chi tiết!`);
+  }
+}
+
+function saveStudyToStorage() {
+  try {
+    const data = {
+      items: studyList.map(s => ({
+        cleanName: s.cleanName,
+        viName: s.viName,
+        latinName: s.latinName,
+        enName: s.enName,
+        system: s.system
+      })),
+      memorized: Array.from(studyMemorized),
+      displayMode: studyDisplayMode
+    };
+    localStorage.setItem('anatovi_study_deck', JSON.stringify(data));
+  } catch (e) {}
+}
+
+function loadStudyFromStorage() {
+  try {
+    const raw = localStorage.getItem('anatovi_study_deck');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.items && Array.isArray(data.items)) {
+      studyList = data.items.map(item => {
+        const mesh = allMeshes.find(m => m.userData.cleanName && m.userData.cleanName.toLowerCase() === item.cleanName.toLowerCase());
+        return {
+          ...item,
+          meshRef: mesh
+        };
+      });
+    }
+    if (data.memorized && Array.isArray(data.memorized)) {
+      studyMemorized = new Set(data.memorized);
+    }
+    if (data.displayMode) {
+      studyDisplayMode = data.displayMode;
+      ['ghost', 'isolate', 'normal'].forEach(m => {
+        const el = document.getElementById(`opt-study-${m}`);
+        if (el) el.classList.toggle('active', m === studyDisplayMode);
+      });
+    }
+  } catch (e) {}
+}
+
+function showStudyToast(msg) {
+  const toast = document.getElementById('study-toast');
+  const msgEl = document.getElementById('study-toast-msg');
+  if (!toast || !msgEl) return;
+
+  msgEl.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2600);
+}
+
+// Automatically initialize study mode when window loads
+window.addEventListener('load', () => {
+  initStudyMode();
+});
+

@@ -1801,6 +1801,598 @@
       background: linear-gradient(90deg, #00d2ff, #3b82f6);
       transition: width 0.25s ease;
     }
+    /* ======================================================== */
+    /* CHẾ ĐỘ HỌC TẬP TÙY CHỌN (SELECTIVE STUDY & FLASHCARD)     */
+    /* ======================================================== */
+    .study-nav-btn {
+      background: rgba(250, 204, 21, 0.12) !important;
+      border-color: rgba(250, 204, 21, 0.4) !important;
+      color: #fde047 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .study-nav-btn:hover {
+      background: rgba(250, 204, 21, 0.22) !important;
+      border-color: #facc15 !important;
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.35);
+    }
+    .study-nav-btn.active {
+      background: linear-gradient(135deg, #eab308, #ca8a04) !important;
+      color: #0f172a !important;
+      border-color: #fef08a !important;
+      font-weight: 800 !important;
+      box-shadow: 0 0 18px rgba(234, 179, 8, 0.5) !important;
+    }
+    .study-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.5);
+    }
+
+    #study-panel {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      width: 390px;
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 165px);
+      z-index: 1500;
+      background: rgba(13, 19, 30, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(250, 204, 21, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #study-panel.minimized {
+      max-height: 52px;
+    }
+    #study-panel.hidden {
+      display: none !important;
+    }
+
+    .study-header {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .study-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #fff;
+    }
+    .study-header-title i {
+      color: #facc15;
+      font-size: 1.05rem;
+    }
+    .study-count-chip {
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(250, 204, 21, 0.15);
+      color: #facc15;
+      border: 1px solid rgba(250, 204, 21, 0.3);
+    }
+    .study-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .study-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: all 0.2s ease;
+    }
+    .study-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+    .study-icon-btn.close:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* 3D Context Bar */
+    .study-view-bar {
+      padding: 7px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+    }
+    .study-view-label {
+      color: #94a3b8;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .study-view-modes {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .study-view-opt {
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.70rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .study-view-opt:hover {
+      color: #fff;
+    }
+    .study-view-opt.active {
+      background: rgba(0, 210, 255, 0.25);
+      color: #00d2ff;
+      border: 1px solid rgba(0, 210, 255, 0.4);
+    }
+
+    /* Tabs Bar */
+    .study-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .study-tab {
+      flex: 1;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+    .study-tab:hover {
+      color: #cbd5e1;
+    }
+    .study-tab.active {
+      color: #facc15;
+      border-bottom-color: #facc15;
+      background: rgba(250, 204, 21, 0.06);
+    }
+
+    /* Tab Body */
+    .study-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Preset selector drawer/section */
+    .study-presets-section {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 2px;
+    }
+    .study-presets-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .study-preset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .study-pill {
+      font-size: 0.71rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .study-pill:hover {
+      background: rgba(250, 204, 21, 0.15);
+      border-color: rgba(250, 204, 21, 0.4);
+      color: #fde047;
+      transform: translateY(-1px);
+    }
+
+    /* Quick Search within study */
+    .study-search-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .study-search-input {
+      width: 100%;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0 10px 0 28px;
+      font-size: 0.78rem;
+      color: #fff;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .study-search-input:focus {
+      border-color: #facc15;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .study-search-icon {
+      position: absolute;
+      left: 9px;
+      top: 9px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    /* Checklist Item */
+    .study-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .study-item-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .study-item-card:hover {
+      background: rgba(250, 204, 21, 0.08);
+      border-color: rgba(250, 204, 21, 0.3);
+      transform: translateX(2px);
+    }
+    .study-item-card.current {
+      background: rgba(250, 204, 21, 0.15);
+      border-color: #facc15;
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+    }
+    .study-item-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .study-item-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .study-item-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .study-item-sub {
+      font-size: 0.70rem;
+      color: #94a3b8;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .study-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .study-btn-del {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      transition: all 0.2s ease;
+    }
+    .study-btn-del:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .study-empty-state {
+      padding: 24px 16px;
+      text-align: center;
+      color: #64748b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .study-empty-state i {
+      font-size: 2rem;
+      color: rgba(250, 204, 21, 0.3);
+    }
+
+    /* Flashcard Quiz View */
+    .study-quiz-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .study-progress-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .study-progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .study-progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .study-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #facc15, #10b981);
+      transition: width 0.3s ease;
+    }
+    .study-flashcard {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .study-flashcard.revealed {
+      border-color: rgba(0, 210, 255, 0.4);
+      background: rgba(0, 210, 255, 0.06);
+    }
+    .study-q-badge {
+      font-size: 0.70rem;
+      font-weight: 800;
+      color: #facc15;
+      background: rgba(250, 204, 21, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .study-q-text {
+      font-size: 0.90rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+    }
+    .study-ans-reveal-btn {
+      padding: 7px 16px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00d2ff, #0066ff);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.80rem;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 210, 255, 0.35);
+      transition: all 0.2s ease;
+    }
+    .study-ans-reveal-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 18px rgba(0, 210, 255, 0.5);
+    }
+    .study-ans-box {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      animation: fadeIn 0.3s ease;
+    }
+    .study-ans-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .study-ans-sub {
+      font-size: 0.78rem;
+      color: #00d2ff;
+      font-style: italic;
+    }
+    .study-ans-desc {
+      font-size: 0.74rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin-top: 4px;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border-left: 3px solid #00d2ff;
+    }
+    .study-eval-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .study-eval-btn {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .study-eval-btn.again {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+    .study-eval-btn.again:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+    .study-eval-btn.good {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .study-eval-btn.good:hover {
+      background: rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+    }
+
+    /* Stepper Navigation */
+    .study-nav-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .study-nav-stepper-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .study-nav-stepper-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+    .study-nav-stepper-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Toast */
+    #study-toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(0, 210, 255, 0.3);
+      z-index: 2000;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #study-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -1898,6 +2490,7 @@
       </div>
 
       <div class="view-presets">
+        <button class="view-btn study-nav-btn" id="btn-study-mode" onclick="toggleStudyMode()" title="Chế độ chọn chi tiết để học & ôn luyện"><i class="fa-solid fa-graduation-cap"></i> <span style="font-weight:700;">Học Tập</span> <span class="study-badge" id="study-badge" style="display:none;">0</span></button>
         <button class="view-btn" id="btn-hub" onclick="openHubOverlay()" title="Màn hình mở đầu (Hub)"><i class="fa-solid fa-shapes"></i> <span style="font-weight:700;">Hub</span></button>
         <button class="view-btn" id="btn-atlas-open" onclick="openAtlasOverlay()" title="Mở thư viện bài học Atlas"><i class="fa-solid fa-book-open"></i> <span style="font-weight:700;">Atlas</span></button>
         <button class="view-btn view-btn-icon-only" id="btn-rotate" onclick="toggleAutoRotate()" title="Tự động xoay 360°"><i class="fa-solid fa-arrows-rotate"></i></button>
@@ -2266,12 +2859,136 @@
 
     <!-- Medical Actions -->
     <div class="action-grid">
+      <button class="action-btn" id="btn-inspect-add-study" onclick="toggleInspectStudy()" style="grid-column: span 2; background: rgba(250, 204, 21, 0.12); border-color: rgba(250, 204, 21, 0.4); color: #fde047; font-weight: 700;"><i class="fa-solid fa-bookmark" id="icon-inspect-study"></i> <span id="txt-inspect-add-study">+ Thêm Vào Bộ Học</span></button>
       <button class="action-btn" onclick="isolateSelected()"><i class="fa-solid fa-compress"></i> Cô Lập</button>
       <button class="action-btn danger" onclick="hideSelected()"><i class="fa-solid fa-eye-slash"></i> Ẩn Đi</button>
       <button class="action-btn" onclick="xraySelected()"><i class="fa-solid fa-wand-magic-sparkles"></i> X-Ray</button>
       <button class="action-btn" onclick="focusSelected()"><i class="fa-solid fa-crosshairs"></i> Cận Cảnh</button>
     </div>
   </aside>
+
+  <!-- ======================================================== -->
+  <!-- SELECTIVE STUDY MODE FLOATING PANEL                      -->
+  <!-- ======================================================== -->
+  <div id="study-panel" class="hidden">
+    <!-- Panel Header -->
+    <div class="study-header">
+      <div class="study-header-title">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Bộ Chi Tiết Học</span>
+        <span class="study-count-chip" id="study-panel-count">0 mục</span>
+      </div>
+      <div class="study-header-actions">
+        <button class="study-icon-btn" onclick="toggleStudyPanelCollapse()" id="btn-study-collapse" title="Thu gọn / Mở rộng"><i class="fa-solid fa-chevron-up" id="icon-study-collapse"></i></button>
+        <button class="study-icon-btn close" onclick="closeStudyMode()" title="Đóng chế độ học (Esc)"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <!-- 3D Display Context Bar -->
+    <div class="study-view-bar">
+      <span class="study-view-label"><i class="fa-solid fa-cubes"></i> Hiển thị 3D:</span>
+      <div class="study-view-modes">
+        <button class="study-view-opt active" id="opt-study-ghost" onclick="setStudyDisplayMode('ghost')" title="Làm mờ cơ thể xung quanh để làm nổi bật chi tiết học">Mờ Nền</button>
+        <button class="study-view-opt" id="opt-study-isolate" onclick="setStudyDisplayMode('isolate')" title="Chỉ hiển thị các chi tiết trong bộ học">Cô Lập</button>
+        <button class="study-view-opt" id="opt-study-normal" onclick="setStudyDisplayMode('normal')" title="Hiện đầy đủ cơ thể kèm phát sáng viền">Bình Thường</button>
+      </div>
+    </div>
+
+    <!-- Tabs Header -->
+    <div class="study-tabs">
+      <div class="study-tab active" id="tab-btn-study-list" onclick="switchStudyTab('list')"><i class="fa-solid fa-list-check"></i> Danh Sách (<span id="study-tab-count">0</span>)</div>
+      <div class="study-tab" id="tab-btn-study-quiz" onclick="switchStudyTab('quiz')"><i class="fa-solid fa-clone"></i> Ôn Luyện Flashcard</div>
+    </div>
+
+    <!-- Tab 1: Checklist & Selection -->
+    <div class="study-body" id="study-content-list">
+      <!-- High-Yield Presets Section -->
+      <div class="study-presets-section">
+        <div class="study-presets-header">
+          <span><i class="fa-solid fa-wand-magic-sparkles" style="color: #facc15;"></i> Bộ Học Gợi Ý Sẵn</span>
+        </div>
+        <div class="study-preset-pills">
+          <button class="study-pill" onclick="loadStudyPreset('cardio')">🫀 Tim Mạch</button>
+          <button class="study-pill" onclick="loadStudyPreset('visceral')">🫁 Tạng Bụng</button>
+          <button class="study-pill" onclick="loadStudyPreset('nervous')">🧠 Thần Kinh</button>
+          <button class="study-pill" onclick="loadStudyPreset('arm')">💪 Chi Trên</button>
+          <button class="study-pill" onclick="loadStudyPreset('leg')">🦵 Chi Dưới</button>
+          <button class="study-pill" onclick="loadStudyPreset('skull')">💀 Hộp Sọ</button>
+        </div>
+      </div>
+
+      <!-- Quick Search & Direct Add -->
+      <div class="study-search-wrap">
+        <i class="fa-solid fa-magnifying-glass study-search-icon"></i>
+        <input type="text" class="study-search-input" id="study-search-input" placeholder="Tìm & thêm chi tiết (vd: tim, dạ dày, xương đùi)..." autocomplete="off">
+        <div class="search-results" id="study-search-results" style="top: 36px; max-height: 180px;"></div>
+      </div>
+
+      <!-- Selected Items Checklist -->
+      <div class="study-items-list" id="study-items-list">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Bottom List Actions -->
+      <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 6px;">
+        <button class="action-btn danger" onclick="clearStudyList()" style="flex: 1; padding: 7px 10px; font-size: 0.74rem;"><i class="fa-solid fa-trash-can"></i> Xóa Hết</button>
+        <button class="action-btn" onclick="startStudyQuiz()" style="flex: 2; padding: 7px 10px; font-size: 0.74rem; background: linear-gradient(135deg, #00d2ff, #0055ff); color: #fff; font-weight: 800;"><i class="fa-solid fa-play"></i> Bắt Đầu Ôn Luyện</button>
+      </div>
+    </div>
+
+    <!-- Tab 2: Flashcard Quiz View -->
+    <div class="study-body" id="study-content-quiz" style="display: none;">
+      <div class="study-quiz-container">
+        <!-- Progress Bar -->
+        <div class="study-progress-wrap">
+          <div class="study-progress-info">
+            <span id="quiz-step-info">Chi tiết 1 / 1</span>
+            <span id="quiz-stat-info">Đã thuộc: 0 (0%)</span>
+          </div>
+          <div class="study-progress-track">
+            <div class="study-progress-fill" id="quiz-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Flashcard -->
+        <div class="study-flashcard" id="study-flashcard">
+          <div class="study-q-badge" id="quiz-badge-sys"><i class="fa-solid fa-dna"></i> Hệ Cơ Quan</div>
+          <div class="study-q-text" id="quiz-question-title">❓ Bạn có nhận diện được cấu trúc giải phẫu đang phát sáng trên mô hình 3D?</div>
+
+          <button class="study-ans-reveal-btn" id="btn-quiz-reveal" onclick="toggleFlashcardAnswer()"><i class="fa-solid fa-eye"></i> Hiện Đáp Án (Lật Thẻ)</button>
+
+          <!-- Hidden Answer Box -->
+          <div class="study-ans-box" id="quiz-ans-box" style="display: none;">
+            <div class="study-ans-title" id="quiz-ans-vi">Tên Tiếng Việt</div>
+            <div class="study-ans-sub" id="quiz-ans-latin">Latin / English Name</div>
+            <div style="display: flex; justify-content: center; gap: 8px; margin: 2px 0;">
+              <button class="study-pill" onclick="speakCurrentStudyTerm()" title="Nghe phát âm chuẩn"><i class="fa-solid fa-volume-high"></i> Đọc Phát Âm</button>
+            </div>
+            <div class="study-ans-desc" id="quiz-ans-desc">Mô tả và ý nghĩa lâm sàng của cấu trúc giải phẫu.</div>
+
+            <!-- Self Evaluation -->
+            <div class="study-eval-grid">
+              <button class="study-eval-btn again" onclick="markStudyItem(false)"><i class="fa-solid fa-rotate-left"></i> Cần Ôn Lại</button>
+              <button class="study-eval-btn good" onclick="markStudyItem(true)"><i class="fa-solid fa-check"></i> Đã Thuộc!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stepper Navigation Footer -->
+    <div class="study-nav-footer">
+      <button class="study-nav-stepper-btn" id="btn-study-prev" onclick="prevStudyItem()"><i class="fa-solid fa-arrow-left"></i> Trước</button>
+      <span style="font-size: 0.74rem; font-weight: 700; color: #cbd5e1;" id="study-stepper-indicator">1 / 1</span>
+      <button class="study-nav-stepper-btn" id="btn-study-next" onclick="nextStudyItem()">Tiếp Theo <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- Study Toast Notification -->
+  <div id="study-toast">
+    <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1.1rem;"></i>
+    <span id="study-toast-msg">Đã thêm vào bộ học</span>
+  </div>
 
   <!-- ======================================================== -->
   <!-- FLOATING BOTTOM 12 SYSTEMS DOCK                          -->
@@ -2409,6 +3126,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260913_v26"></script>
+  <script src="app.js?v=20260918_v27"></script>
 </body>
 </html>
