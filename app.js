@@ -794,6 +794,12 @@ function translateToVietnameseMedical(name) {
   vi = vi.replace(/\bdeep\b/gi, 'sâu');
   vi = vi.replace(/\binternal\b/gi, 'trong');
   vi = vi.replace(/\bexternal\b/gi, 'ngoài');
+  vi = vi.replace(/\bsupreme\b/gi, 'trên cùng');
+  vi = vi.replace(/\bhighest\b/gi, 'cao nhất');
+  vi = vi.replace(/\baccessory\b/gi, 'phụ');
+  vi = vi.replace(/\bproper\b/gi, 'riêng');
+  vi = vi.replace(/\bmain\b/gi, 'chính');
+  vi = vi.replace(/\bdeepest\b/gi, 'sâu nhất');
 
   return vi;
 }
@@ -949,6 +955,14 @@ function setupMesh(mesh, sourceFile) {
   }
   if (mesh.position.y < -0.8 || mesh.position.y > 2.6 || Math.abs(mesh.position.x) > 2.0) {
     mesh.visible = false;
+  }
+
+  // Fix clipping issue where gastric arteries appear inside the stomach
+  if (nameLower.includes(\'gastric artery\') || nameLower.includes(\'gastro-omental\')) {
+    mesh.position.z += 0.025; // Push them forward onto the stomach surface
+  }
+  if (nameLower === \'stomach\') {
+    mesh.position.z -= 0.01; // Push stomach slightly back to prevent swallowing anterior vessels
   }
 
   let targetSystem = 'skeletal';
