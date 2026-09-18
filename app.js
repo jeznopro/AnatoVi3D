@@ -958,10 +958,10 @@ function setupMesh(mesh, sourceFile) {
   }
 
   // Fix clipping issue where gastric arteries appear inside the stomach
-  if (nameLower.includes(\'gastric artery\') || nameLower.includes(\'gastro-omental\')) {
+  if (nameLower.includes('gastric artery') || nameLower.includes('gastro-omental')) {
     mesh.position.z += 0.025; // Push them forward onto the stomach surface
   }
-  if (nameLower === \'stomach\') {
+  if (nameLower === 'stomach') {
     mesh.position.z -= 0.01; // Push stomach slightly back to prevent swallowing anterior vessels
   }
 
