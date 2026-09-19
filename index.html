@@ -438,6 +438,136 @@
     }
 
     /* ======================================================== */
+    /* VASCULAR TREE & BRANCH CARD STYLES                       */
+    /* ======================================================== */
+    .vascular-card {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 12px;
+      padding: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    .vascular-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+    .vascular-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.80rem;
+      font-weight: 700;
+      color: #f8fafc;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .vascular-badge-pill {
+      font-size: 0.70rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .vascular-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vascular-row-label {
+      font-size: 0.70rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .vascular-nodes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .vascular-nodes::-webkit-scrollbar {
+      width: 4px;
+    }
+    .vascular-nodes::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .vascular-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      color: #f8fafc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: left;
+    }
+    .vascular-chip:hover {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: rgba(0, 210, 255, 0.5);
+      color: #38bdf8;
+      transform: translateX(3px);
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.2);
+    }
+    .vascular-chip.parent {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fde68a;
+    }
+    .vascular-chip.parent:hover {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: rgba(245, 158, 11, 0.6);
+      color: #fff;
+    }
+    .vascular-chip-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-style: italic;
+      display: block;
+    }
+    .vascular-btn {
+      width: 100%;
+      background: rgba(56, 189, 248, 0.10);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s;
+    }
+    .vascular-btn:hover {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+    }
+
+    /* ======================================================== */
     /* FLOATING BOTTOM 12 SYSTEMS DOCK                          */
     /* ======================================================== */
     .ca-bottom-bar {
@@ -2857,6 +2987,36 @@
       Cơ hai đầu nằm ở mặt trước cánh tay, là cơ gập cẳng tay chính ở khớp khuỷu và ngửa cẳng tay mạnh nhất.
     </div>
 
+    <!-- Vascular Branches Card (Appears dynamically when a blood vessel is selected) -->
+    <div class="vascular-card" id="inspect-vascular-card" style="display: none;">
+      <div class="vascular-card-header">
+        <div class="vascular-header-title">
+          <i class="fa-solid fa-code-branch" style="color: #ef4444;"></i>
+          <span>Cây Phân Nhánh Mạch Máu</span>
+        </div>
+        <span class="vascular-badge-pill" id="vascular-branch-count">0 nhánh</span>
+      </div>
+
+      <!-- Parent Origin -->
+      <div class="vascular-row" id="vascular-parent-row" style="display: none;">
+        <div class="vascular-row-label"><i class="fa-solid fa-arrow-turn-up fa-rotate-90"></i> Gốc xuất phát:</div>
+        <div class="vascular-nodes" id="vascular-parent-node"></div>
+      </div>
+
+      <!-- Branches List -->
+      <div class="vascular-row" id="vascular-branches-row">
+        <div class="vascular-row-label"><i class="fa-solid fa-arrow-turn-down"></i> Các nhánh phân tách:</div>
+        <div class="vascular-nodes" id="vascular-branches-nodes"></div>
+      </div>
+
+      <!-- Quick Action: Highlight/Isolate entire vascular branch network -->
+      <div class="vascular-actions">
+        <button class="vascular-btn" id="btn-vascular-focus-tree" onclick="focusVascularTree()">
+          <i class="fa-solid fa-bullseye"></i> Dẫn đường toàn cây nhánh
+        </button>
+      </div>
+    </div>
+
     <!-- Medical Actions -->
     <div class="action-grid">
       <button class="action-btn" id="btn-inspect-add-study" onclick="toggleInspectStudy()" style="grid-column: span 2; background: rgba(250, 204, 21, 0.12); border-color: rgba(250, 204, 21, 0.4); color: #fde047; font-weight: 700;"><i class="fa-solid fa-bookmark" id="icon-inspect-study"></i> <span id="txt-inspect-add-study">+ Thêm Vào Bộ Học</span></button>
@@ -3126,6 +3286,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260918_v35"></script>
+  <script src="app.js?v=20260919_v36"></script>
 </body>
 </html>

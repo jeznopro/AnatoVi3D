@@ -251,6 +251,11 @@ function animate() {
     selectedMesh.material.emissiveIntensity = pulse;
   }
 
+  // Dynamic pulsing for 3D silhouette outline borders
+  if (typeof updateOutlinesAnimation === 'function') {
+    updateOutlinesAnimation();
+  }
+
   controls.update();
 
   if (isAutoRotating) {
@@ -1591,6 +1596,436 @@ function unhighlightMesh(mesh) {
   mesh.material.emissiveIntensity = origEmissive ? 0.35 : 0.0;
 }
 
+// ========================================================
+// 3D SILHOUETTE OUTLINE BORDER SYSTEM (INVERTED HULL)
+// ========================================================
+let activeOutlines = [];
+
+function escapeJsStr(str) {
+  if (!str) return '';
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function createOutlineMesh(mesh, colorHex = 0x00f0ff, thickness = 0.0035, opacity = 0.85) {
+  if (!mesh || !mesh.geometry) return null;
+
+  if (!mesh.geometry.attributes.normal) {
+    mesh.geometry.computeVertexNormals();
+  }
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      outlineColor: { value: new THREE.Color(colorHex) },
+      outlineThickness: { value: thickness },
+      opacityVal: { value: opacity },
+      timeVal: { value: 0.0 }
+    },
+    vertexShader: [
+      'uniform float outlineThickness;',
+      'uniform float timeVal;',
+      'void main() {',
+      '  float pulse = 1.0 + 0.16 * sin(timeVal * 4.0);',
+      '  vec3 extruded = position + normal * (outlineThickness * pulse);',
+      '  gl_Position = projectionMatrix * modelViewMatrix * vec4(extruded, 1.0);',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform vec3 outlineColor;',
+      'uniform float opacityVal;',
+      'uniform float timeVal;',
+      'void main() {',
+      '  float glow = 0.88 + 0.12 * sin(timeVal * 5.0);',
+      '  gl_FragColor = vec4(outlineColor * glow, opacityVal);',
+      '}'
+    ].join('\n'),
+    side: THREE.BackSide,
+    depthTest: true,
+    depthWrite: false,
+    transparent: true,
+    blending: THREE.NormalBlending
+  });
+
+  const outlineMesh = new THREE.Mesh(mesh.geometry, mat);
+  outlineMesh.raycast = () => {};
+  outlineMesh.renderOrder = 999;
+  mesh.add(outlineMesh);
+  activeOutlines.push({ outlineMesh, parentMesh: mesh, material: mat });
+  return outlineMesh;
+}
+
+function clearAllOutlines() {
+  activeOutlines.forEach(item => {
+    if (item.parentMesh && item.outlineMesh) {
+      item.parentMesh.remove(item.outlineMesh);
+    }
+    if (item.material) {
+      item.material.dispose();
+    }
+  });
+  activeOutlines = [];
+}
+
+function updateOutlinesAnimation() {
+  if (activeOutlines.length === 0) return;
+  const t = performance.now() * 0.001;
+  activeOutlines.forEach(item => {
+    if (item.material && item.material.uniforms && item.material.uniforms.timeVal) {
+      item.material.uniforms.timeVal.value = t;
+    }
+  });
+}
+
+// ========================================================
+// VASCULAR TREE GRAPH & ANATOMICAL HIERARCHY
+// ========================================================
+const VASCULAR_TREE_GRAPH = {
+  // Aorta & Main Trunks
+  'ascending aorta': { parent: 'heart', branches: ['right coronary artery', 'left coronary artery'] },
+  'arch of aorta': { parent: 'ascending aorta', branches: ['brachiocephalic trunk', 'left common carotid artery', 'left subclavian artery'] },
+  'thoracic aorta': { parent: 'arch of aorta', branches: ['posterior intercostal', 'bronchial artery', 'esophageal branch', 'superior phrenic artery'] },
+  'abdominal aorta': { parent: 'thoracic aorta', branches: ['celiac trunk', 'superior mesenteric artery', 'inferior mesenteric artery', 'renal artery', 'common iliac artery', 'inferior phrenic artery', 'lumbar artery'] },
+  'brachiocephalic trunk': { parent: 'arch of aorta', branches: ['right common carotid artery', 'right subclavian artery'] },
+
+  // Head & Neck
+  'common carotid artery': { parent: 'brachiocephalic trunk', branches: ['external carotid artery', 'internal carotid artery'] },
+  'left common carotid artery': { parent: 'arch of aorta', branches: ['external carotid artery', 'internal carotid artery'] },
+  'right common carotid artery': { parent: 'brachiocephalic trunk', branches: ['external carotid artery', 'internal carotid artery'] },
+  'external carotid artery': { parent: 'common carotid artery', branches: ['superior thyroid artery', 'ascending pharyngeal artery', 'lingual artery', 'facial artery', 'occipital artery', 'posterior auricular artery', 'maxillary artery', 'superficial temporal artery'] },
+  'maxillary artery': { parent: 'external carotid artery', branches: ['middle meningeal artery', 'inferior alveolar artery', 'infra-orbital artery', 'sphenopalatine artery'] },
+  'facial artery': { parent: 'external carotid artery', branches: ['superior labial artery', 'inferior labial artery', 'angular artery', 'submental artery'] },
+  'internal carotid artery': { parent: 'common carotid artery', branches: ['ophthalmic artery', 'anterior cerebral artery', 'middle cerebral artery', 'posterior communicating artery', 'anterior choroidal artery'] },
+  'vertebral artery': { parent: 'subclavian artery', branches: ['anterior spinal artery', 'posterior inferior cerebellar artery', 'basilar artery'] },
+  'basilar artery': { parent: 'vertebral artery', branches: ['posterior cerebral artery', 'superior cerebellar artery', 'anterior inferior cerebellar artery', 'pontine branches', 'labyrinthine artery'] },
+
+  // Upper Limb & Shoulder
+  'subclavian artery': { parent: 'brachiocephalic trunk', branches: ['vertebral artery', 'internal thoracic artery', 'thyrocervical trunk', 'costocervical trunk', 'dorsal scapular artery', 'transverse cervical artery', 'deep branch of transverse cervical artery', 'axillary artery'] },
+  'left subclavian artery': { parent: 'arch of aorta', branches: ['vertebral artery', 'internal thoracic artery', 'thyrocervical trunk', 'costocervical trunk', 'dorsal scapular artery', 'transverse cervical artery', 'deep branch of transverse cervical artery', 'axillary artery'] },
+  'right subclavian artery': { parent: 'brachiocephalic trunk', branches: ['vertebral artery', 'internal thoracic artery', 'thyrocervical trunk', 'costocervical trunk', 'dorsal scapular artery', 'transverse cervical artery', 'deep branch of transverse cervical artery', 'axillary artery'] },
+  'thyrocervical trunk': { parent: 'subclavian artery', branches: ['inferior thyroid artery', 'suprascapular artery', 'transverse cervical artery'] },
+  'transverse cervical artery': { parent: 'thyrocervical trunk', branches: ['deep branch of transverse cervical artery', 'superficial branch of transverse cervical artery', 'dorsal scapular artery'] },
+  'deep branch of transverse cervical artery': { parent: 'transverse cervical artery', branches: ['suprascapular artery', 'circumflex scapular artery'] },
+  'dorsal scapular artery': { parent: 'subclavian artery', branches: ['suprascapular artery', 'circumflex scapular artery'] },
+  'suprascapular artery': { parent: 'thyrocervical trunk', branches: ['acromial branch of suprascapular artery', 'circumflex scapular artery'] },
+  'axillary artery': { parent: 'subclavian artery', branches: ['superior thoracic artery', 'thoraco-acromial artery', 'lateral thoracic artery', 'subscapular artery', 'anterior circumflex humeral artery', 'posterior circumflex humeral artery', 'brachial artery'] },
+  'thoraco-acromial artery': { parent: 'axillary artery', branches: ['pectoral branches of thoraco-acromial artery', 'acromial branch of thoraco-acromial artery', 'deltoid branch of thoraco-acromial artery', 'clavicular branch of thoraco-acromial artery'] },
+  'subscapular artery': { parent: 'axillary artery', branches: ['circumflex scapular artery', 'thoracodorsal artery'] },
+  'circumflex scapular artery': { parent: 'subscapular artery', branches: ['suprascapular artery', 'deep branch of transverse cervical artery'] },
+  'thoracodorsal artery': { parent: 'subscapular artery', branches: ['lateral thoracic artery'] },
+  'anterior circumflex humeral artery': { parent: 'axillary artery', branches: ['posterior circumflex humeral artery'] },
+  'posterior circumflex humeral artery': { parent: 'axillary artery', branches: ['anterior circumflex humeral artery'] },
+  'brachial artery': { parent: 'axillary artery', branches: ['deep brachial artery', 'superior ulnar collateral artery', 'inferior ulnar collateral artery', 'radial artery', 'ulnar artery'] },
+  'deep brachial artery': { parent: 'brachial artery', branches: ['radial collateral artery', 'middle collateral artery'] },
+  'radial artery': { parent: 'brachial artery', branches: ['radial recurrent artery', 'palmar carpal branch of radial artery', 'superficial palmar branch of radial artery', 'deep palmar arch', 'dorsal carpal branch of radial artery'] },
+  'ulnar artery': { parent: 'brachial artery', branches: ['ulnar recurrent artery', 'common interosseous artery', 'dorsal carpal branch of ulnar artery', 'palmar carpal branch of ulnar artery', 'superficial palmar arch'] },
+  'common interosseous artery': { parent: 'ulnar artery', branches: ['anterior interosseous artery', 'posterior interosseous artery', 'recurrent interosseous artery'] },
+
+  // Abdomen & Visceral
+  'celiac trunk': { parent: 'abdominal aorta', branches: ['left gastric artery', 'common hepatic artery', 'splenic artery'] },
+  'left gastric artery': { parent: 'celiac trunk', branches: ['esophageal branches of left gastric artery'] },
+  'common hepatic artery': { parent: 'celiac trunk', branches: ['proper hepatic artery', 'right gastric artery', 'gastroduodenal artery'] },
+  'proper hepatic artery': { parent: 'common hepatic artery', branches: ['right hepatic artery', 'left hepatic artery', 'cystic artery'] },
+  'gastroduodenal artery': { parent: 'common hepatic artery', branches: ['right gastro-omental artery', 'superior pancreaticoduodenal artery'] },
+  'splenic artery': { parent: 'celiac trunk', branches: ['short gastric arteries', 'left gastro-omental artery', 'pancreatic branches of splenic artery', 'posterior gastric artery'] },
+  'superior mesenteric artery': { parent: 'abdominal aorta', branches: ['inferior pancreaticoduodenal artery', 'jejunal arteries', 'ileal arteries', 'ileocolic artery', 'right colic artery', 'middle colic artery'] },
+  'inferior mesenteric artery': { parent: 'abdominal aorta', branches: ['left colic artery', 'sigmoid arteries', 'superior rectal artery'] },
+  'renal artery': { parent: 'abdominal aorta', branches: ['anterior branch of renal artery', 'inferior suprarenal artery', 'posterior branch of renal artery'] },
+
+  // Pelvis & Lower Limb
+  'common iliac artery': { parent: 'abdominal aorta', branches: ['internal iliac artery', 'external iliac artery'] },
+  'internal iliac artery': { parent: 'common iliac artery', branches: ['anterior division of internal iliac artery', 'posterior division of internal iliac artery', 'superior gluteal artery', 'inferior gluteal artery', 'obturator artery', 'internal pudendal artery', 'uterine artery', 'middle rectal artery'] },
+  'external iliac artery': { parent: 'common iliac artery', branches: ['inferior epigastric artery', 'deep circumflex iliac artery', 'femoral artery'] },
+  'femoral artery': { parent: 'external iliac artery', branches: ['deep femoral artery', 'lateral circumflex femoral artery', 'medial circumflex femoral artery', 'perforating femoral arteries', 'popliteal artery', 'descending genicular artery'] },
+  'deep femoral artery': { parent: 'femoral artery', branches: ['lateral circumflex femoral artery', 'medial circumflex femoral artery', 'descending branch of lateral circumflex femoral artery', 'perforating femoral arteries'] },
+  'lateral circumflex femoral artery': { parent: 'deep femoral artery', branches: ['descending branch of lateral circumflex femoral artery', 'ascending branch of lateral circumflex femoral artery'] },
+  'popliteal artery': { parent: 'femoral artery', branches: ['anterior tibial artery', 'posterior tibial artery', 'superior lateral genicular artery', 'superior medial genicular artery', 'inferior lateral genicular artery', 'inferior medial genicular artery'] },
+  'anterior tibial artery': { parent: 'popliteal artery', branches: ['anterior tibial recurrent artery', 'dorsalis pedis artery', 'lateral malleolar artery', 'medial malleolar artery'] },
+  'posterior tibial artery': { parent: 'popliteal artery', branches: ['fibular artery', 'calcaneal branches of posterior tibial artery', 'medial plantar artery', 'lateral plantar artery'] },
+  'fibular artery': { parent: 'posterior tibial artery', branches: ['perforating branch of fibular artery', 'calcaneal branches of fibular artery'] },
+
+  // Venous System
+  'superior vena cava': { parent: 'heart', branches: ['left brachiocephalic vein', 'right brachiocephalic vein', 'azygos vein'] },
+  'brachiocephalic vein': { parent: 'superior vena cava', branches: ['internal jugular vein', 'subclavian vein', 'vertebral vein', 'inferior thyroid vein'] },
+  'internal jugular vein': { parent: 'brachiocephalic vein', branches: ['facial vein', 'lingual vein', 'superior thyroid vein'] },
+  'subclavian vein': { parent: 'brachiocephalic vein', branches: ['axillary vein', 'external jugular vein'] },
+  'axillary vein': { parent: 'subclavian vein', branches: ['brachial vein', 'cephalic vein', 'basilic vein', 'subscapular vein'] },
+  'inferior vena cava': { parent: 'heart', branches: ['common iliac vein', 'hepatic veins', 'renal vein', 'inferior phrenic vein'] },
+  'common iliac vein': { parent: 'inferior vena cava', branches: ['internal iliac vein', 'external iliac vein'] },
+  'external iliac vein': { parent: 'common iliac vein', branches: ['femoral vein', 'inferior epigastric vein'] },
+  'femoral vein': { parent: 'external iliac vein', branches: ['great saphenous vein', 'deep femoral vein', 'popliteal vein'] },
+  'popliteal vein': { parent: 'femoral vein', branches: ['small saphenous vein', 'anterior tibial veins', 'posterior tibial veins', 'fibular veins'] },
+  'hepatic portal vein': { parent: 'liver', branches: ['splenic vein', 'superior mesenteric vein', 'inferior mesenteric vein'] }
+};
+
+function isBloodVessel(mesh) {
+  if (!mesh || !mesh.userData) return false;
+  const sys = mesh.userData.system;
+  if (sys === 'arterial' || sys === 'venous') return true;
+  const clean = (mesh.userData.cleanName || '').toLowerCase();
+  const vi = (mesh.userData.viName || '').toLowerCase();
+  return /\b(artery|arteries|arteria|vein|veins|vena|aorta|cava|trunk|vessel|vasa)\b/i.test(clean) ||
+         /động mạch|tĩnh mạch|mạch máu/i.test(vi);
+}
+
+function getVascularRelations(mesh) {
+  if (!mesh || !mesh.userData || !isBloodVessel(mesh)) {
+    return { isVessel: false, parent: null, branches: [] };
+  }
+
+  const rawName = (mesh.name || '').toLowerCase();
+  const cleanName = (mesh.userData.cleanName || '').toLowerCase();
+  const viName = (mesh.userData.viName || '').toLowerCase();
+
+  let side = null;
+  if (rawName.endsWith('.l') || rawName.endsWith('_l') || rawName.includes(' left') || cleanName.includes('left') || viName.includes('(trái)')) {
+    side = 'left';
+  } else if (rawName.endsWith('.r') || rawName.endsWith('_r') || rawName.includes(' right') || cleanName.includes('right') || viName.includes('(phải)')) {
+    side = 'right';
+  }
+
+  let baseKey = cleanName.replace(/\b(left|right)\b/g, '').replace(/[()]/g, '').trim().replace(/\s+/g, ' ');
+
+  let treeEntry = null;
+  let matchedKey = null;
+
+  function nameMatchesVessel(candidateName, targetPattern) {
+    if (!candidateName || !targetPattern) return false;
+    const c = candidateName.toLowerCase().trim();
+    const p = targetPattern.toLowerCase().trim();
+    if (c === p) return true;
+    const escP = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp('\\b' + escP + '\\b', 'i').test(c)) return true;
+    const escC = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp('\\b' + escC + '\\b', 'i').test(p)) return true;
+    return false;
+  }
+
+  for (const k in VASCULAR_TREE_GRAPH) {
+    if (nameMatchesVessel(baseKey, k) || nameMatchesVessel(cleanName, k)) {
+      if (!treeEntry || k.length > (matchedKey ? matchedKey.length : 0)) {
+        treeEntry = VASCULAR_TREE_GRAPH[k];
+        matchedKey = k;
+      }
+    }
+  }
+
+  let parentNamePattern = treeEntry ? treeEntry.parent : null;
+  let branchNamePatterns = treeEntry ? [...treeEntry.branches] : [];
+
+  const branchOfMatch = cleanName.match(/(?:branch|branches|tributary|tributaries) of (.+)/i);
+  if (branchOfMatch) {
+    const inferredParent = branchOfMatch[1].trim();
+    if (!parentNamePattern || parentNamePattern === 'heart') {
+      parentNamePattern = inferredParent;
+    }
+  }
+
+  allMeshes.forEach(m => {
+    if (m === mesh || !m.userData) return;
+    const otherClean = (m.userData.cleanName || '').toLowerCase();
+    if (otherClean.includes(`of ${baseKey}`) || otherClean.includes(`of ${cleanName}`)) {
+      if (!branchNamePatterns.includes(otherClean)) {
+        branchNamePatterns.push(otherClean);
+      }
+    }
+  });
+
+  function meshMatchesSide(m) {
+    if (!side) return true;
+    const mRaw = (m.name || '').toLowerCase();
+    const mClean = (m.userData.cleanName || '').toLowerCase();
+    const mVi = (m.userData.viName || '').toLowerCase();
+    if (side === 'left') {
+      return mRaw.endsWith('.l') || mRaw.endsWith('_l') || mRaw.includes(' left') || mClean.includes('left') || mVi.includes('(trái)');
+    } else {
+      return mRaw.endsWith('.r') || mRaw.endsWith('_r') || mRaw.includes(' right') || mClean.includes('right') || mVi.includes('(phải)');
+    }
+  }
+
+  let parentObj = null;
+  if (parentNamePattern && parentNamePattern !== 'heart' && parentNamePattern !== 'liver') {
+    const parentCandidates = allMeshes.filter(m => {
+      if (m === mesh || !m.userData) return false;
+      const mClean = (m.userData.cleanName || '').toLowerCase();
+      return nameMatchesVessel(mClean, parentNamePattern) && (side ? meshMatchesSide(m) : true);
+    });
+
+    if (parentCandidates.length > 0) {
+      const pMesh = parentCandidates[0];
+      parentObj = {
+        mesh: pMesh,
+        nameVi: pMesh.userData.viName || pMesh.userData.cleanName,
+        nameEn: pMesh.userData.cleanName,
+        nameLatin: pMesh.userData.latinName
+      };
+    }
+  }
+
+  const foundBranches = [];
+  const seenMeshes = new Set([mesh]);
+
+  branchNamePatterns.forEach(pattern => {
+    const branchCandidates = allMeshes.filter(m => {
+      if (seenMeshes.has(m) || !m.userData) return false;
+      const mClean = (m.userData.cleanName || '').toLowerCase();
+      return nameMatchesVessel(mClean, pattern) && (side ? meshMatchesSide(m) : true);
+    });
+
+    branchCandidates.forEach(bMesh => {
+      if (!seenMeshes.has(bMesh)) {
+        seenMeshes.add(bMesh);
+        foundBranches.push({
+          mesh: bMesh,
+          nameVi: bMesh.userData.viName || bMesh.userData.cleanName,
+          nameEn: bMesh.userData.cleanName,
+          nameLatin: bMesh.userData.latinName
+        });
+      }
+    });
+  });
+
+  return {
+    isVessel: true,
+    side: side,
+    parent: parentObj,
+    branches: foundBranches
+  };
+}
+
+function applyVesselTreeOutlines(selectedMesh, relations) {
+  clearAllOutlines();
+
+  // 1. Primary Outline for selected mesh (Gold / Cyan)
+  selectedMesh.visible = true;
+  selectedMesh.userData.isHidden = false;
+  const mainOutlineColor = (relations && relations.isVessel) ? 0x00f0ff : 0xfacc15;
+  createOutlineMesh(selectedMesh, mainOutlineColor, 0.0038, 0.95);
+
+  if (!relations || !relations.isVessel) return;
+
+  // 2. Parent outline (Warm Amber)
+  if (relations.parent && relations.parent.mesh) {
+    relations.parent.mesh.visible = true;
+    relations.parent.mesh.userData.isHidden = false;
+    createOutlineMesh(relations.parent.mesh, 0xf59e0b, 0.0028, 0.70);
+  }
+
+  // 3. Branches outline (Sky Blue)
+  if (relations.branches && relations.branches.length > 0) {
+    relations.branches.forEach(b => {
+      if (b.mesh) {
+        b.mesh.visible = true;
+        b.mesh.userData.isHidden = false;
+        createOutlineMesh(b.mesh, 0x38bdf8, 0.0030, 0.85);
+      }
+    });
+  }
+}
+
+function renderVascularCard(mesh, relations) {
+  const card = document.getElementById('inspect-vascular-card');
+  if (!card) return;
+
+  if (!relations || !relations.isVessel || (!relations.parent && relations.branches.length === 0)) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'flex';
+
+  const branchCountEl = document.getElementById('vascular-branch-count');
+  if (branchCountEl) {
+    branchCountEl.textContent = `${relations.branches.length} nhánh`;
+  }
+
+  // Parent origin
+  const parentRow = document.getElementById('vascular-parent-row');
+  const parentNode = document.getElementById('vascular-parent-node');
+  if (relations.parent) {
+    parentRow.style.display = 'flex';
+    parentNode.innerHTML = `
+      <div class="vascular-chip parent" onclick="selectVesselBranch('${escapeJsStr(relations.parent.nameEn)}')">
+        <i class="fa-solid fa-arrow-up-long"></i>
+        <div>
+          <span style="font-weight: 700;">${relations.parent.nameVi}</span>
+          <span class="vascular-chip-sub">${relations.parent.nameLatin || relations.parent.nameEn}</span>
+        </div>
+      </div>
+    `;
+  } else {
+    parentRow.style.display = 'none';
+    parentNode.innerHTML = '';
+  }
+
+  // Branches
+  const branchesRow = document.getElementById('vascular-branches-row');
+  const branchesNodes = document.getElementById('vascular-branches-nodes');
+  if (relations.branches.length > 0) {
+    branchesRow.style.display = 'flex';
+    branchesNodes.innerHTML = relations.branches.map(b => `
+      <div class="vascular-chip branch" onclick="selectVesselBranch('${escapeJsStr(b.nameEn)}')">
+        <i class="fa-solid fa-code-branch" style="color: #38bdf8;"></i>
+        <div>
+          <span style="font-weight: 700;">${b.nameVi}</span>
+          <span class="vascular-chip-sub">${b.nameLatin || b.nameEn}</span>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    branchesRow.style.display = 'none';
+    branchesNodes.innerHTML = '<div style="font-size: 0.76rem; color: var(--text-muted); font-style: italic;">Là nhánh tận cùng hoặc tiểu nhánh.</div>';
+  }
+}
+
+function selectVesselBranch(vesselCleanName) {
+  const target = allMeshes.find(m => (m.userData.cleanName || '').toLowerCase() === vesselCleanName.toLowerCase());
+  if (target) {
+    target.visible = true;
+    target.userData.isHidden = false;
+    selectOrgan(target);
+    focusSelected();
+  }
+}
+
+function focusVascularTree() {
+  if (!selectedMesh) return;
+  const relations = getVascularRelations(selectedMesh);
+  if (!relations || !relations.isVessel) return;
+
+  const treeMeshes = new Set([selectedMesh]);
+  if (relations.parent && relations.parent.mesh) treeMeshes.add(relations.parent.mesh);
+  relations.branches.forEach(b => { if (b.mesh) treeMeshes.add(b.mesh); });
+
+  allMeshes.forEach(m => {
+    if (!treeMeshes.has(m)) {
+      m.material.transparent = true;
+      m.material.opacity = 0.12;
+      m.material.depthWrite = false;
+    } else {
+      m.visible = true;
+      m.userData.isHidden = false;
+      m.material.transparent = false;
+      m.material.opacity = 1.0;
+      m.material.depthWrite = true;
+    }
+  });
+
+  const combinedBox = new THREE.Box3();
+  treeMeshes.forEach(m => {
+    combinedBox.expandByObject(m);
+  });
+  const center = combinedBox.getCenter(new THREE.Vector3());
+  const size = combinedBox.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const fov = camera.fov * (Math.PI / 180);
+  let distance = maxDim / (2 * Math.tan(fov / 2));
+  distance = Math.max(distance * 1.6, 0.5);
+
+  const direction = camera.position.clone().sub(center).normalize();
+  if (direction.lengthSq() < 0.001) direction.set(0, 0, 1);
+  const newPos = center.clone().add(direction.multiplyScalar(distance));
+  smoothMoveCamera(newPos, center);
+}
+
 function selectOrgan(mesh) {
   if (selectedMesh) {
     selectedMesh.material.color.setHex(selectedMesh.userData.originalColor);
@@ -1604,10 +2039,14 @@ function selectOrgan(mesh) {
   selectedMesh.material.emissive.setHex(0x5a4800);
   selectedMesh.material.emissiveIntensity = 0.55;
 
-  openInspector(mesh);
+  // Resolve vascular relationships & render 3D silhouette outlines
+  const relations = getVascularRelations(mesh);
+  applyVesselTreeOutlines(mesh, relations);
+
+  openInspector(mesh, relations);
 }
 
-function openInspector(mesh) {
+function openInspector(mesh, relations = null) {
   const u = mesh.userData;
   const inspector = document.getElementById('inspector');
   const titleVi = document.getElementById('inspect-title-vi');
@@ -1663,6 +2102,12 @@ function openInspector(mesh) {
   }
   descCard.textContent = desc;
 
+  // Render vascular navigation card
+  if (!relations) {
+    relations = getVascularRelations(mesh);
+  }
+  renderVascularCard(mesh, relations);
+
   updateInspectStudyButton();
   inspector.style.display = 'flex';
 }
@@ -1676,6 +2121,9 @@ function closeInspector() {
     selectedMesh.material.emissiveIntensity = origEmissive ? 0.35 : 0.0;
     selectedMesh = null;
   }
+  clearAllOutlines();
+  const vasCard = document.getElementById('inspect-vascular-card');
+  if (vasCard) vasCard.style.display = 'none';
 }
 
 function isolateSelected() {
