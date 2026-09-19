@@ -392,6 +392,55 @@
       letter-spacing: 0.3px;
     }
 
+    /* Inspector Highlight Mode Switch (Phát sáng / Như cũ) */
+    .inspect-mode-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 5px 10px;
+    }
+    .inspect-mode-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .inspect-mode-buttons {
+      display: flex;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px;
+      border-radius: 7px;
+    }
+    .inspect-mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .inspect-mode-btn.active {
+      background: rgba(0, 210, 255, 0.18);
+      border-color: rgba(0, 210, 255, 0.45);
+      color: #00d2ff;
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+    }
+    .inspect-mode-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
     .organ-desc-card {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
@@ -2620,6 +2669,7 @@
       </div>
 
       <div class="view-presets">
+        <button class="view-btn" id="btn-highlight-mode" onclick="toggleHighlightMode()" title="Chuyển đổi chế độ xem: Phát Sáng ✨ / Như Cũ"><i class="fa-solid fa-palette" id="icon-highlight-mode"></i> <span id="txt-highlight-mode">Như Cũ</span></button>
         <button class="view-btn study-nav-btn" id="btn-study-mode" onclick="toggleStudyMode()" title="Chế độ chọn chi tiết để học & ôn luyện"><i class="fa-solid fa-graduation-cap"></i> <span style="font-weight:700;">Học Tập</span> <span class="study-badge" id="study-badge" style="display:none;">0</span></button>
         <button class="view-btn" id="btn-hub" onclick="openHubOverlay()" title="Màn hình mở đầu (Hub)"><i class="fa-solid fa-shapes"></i> <span style="font-weight:700;">Hub</span></button>
         <button class="view-btn" id="btn-atlas-open" onclick="openAtlasOverlay()" title="Mở thư viện bài học Atlas"><i class="fa-solid fa-book-open"></i> <span style="font-weight:700;">Atlas</span></button>
@@ -2983,6 +3033,15 @@
       <i class="fa-solid fa-circle-info"></i> Hệ Cơ Bắp
     </div>
 
+    <!-- Highlight Mode Switch (Phát sáng / Như cũ) -->
+    <div class="inspect-mode-switch">
+      <span class="inspect-mode-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Hiệu ứng:</span>
+      <div class="inspect-mode-buttons">
+        <button class="inspect-mode-btn active" id="insp-mode-classic" onclick="setHighlightMode(false)" title="Chế độ nguyên bản như cũ">Như Cũ</button>
+        <button class="inspect-mode-btn" id="insp-mode-glow" onclick="setHighlightMode(true)" title="Chế độ viền phát sáng 3D và dẫn đường nhánh">Phát Sáng ✨</button>
+      </div>
+    </div>
+
     <div class="organ-desc-card" id="inspect-desc">
       Cơ hai đầu nằm ở mặt trước cánh tay, là cơ gập cẳng tay chính ở khớp khuỷu và ngửa cẳng tay mạnh nhất.
     </div>
@@ -3286,6 +3345,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260919_v36"></script>
+  <script src="app.js?v=20260919_v37"></script>
 </body>
 </html>

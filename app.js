@@ -1598,8 +1598,65 @@ function unhighlightMesh(mesh) {
 
 // ========================================================
 // 3D SILHOUETTE OUTLINE BORDER SYSTEM (INVERTED HULL)
+// Dual Modes: Classic (Như Cũ - Default) & Glow Outline (Phát Sáng)
 // ========================================================
 let activeOutlines = [];
+let isGlowOutlineMode = false;
+try {
+  const savedGlowMode = localStorage.getItem('anatovi_glow_mode');
+  if (savedGlowMode === 'glow') {
+    isGlowOutlineMode = true;
+  }
+} catch (e) {}
+
+function setHighlightMode(enableGlow) {
+  isGlowOutlineMode = !!enableGlow;
+  try {
+    localStorage.setItem('anatovi_glow_mode', isGlowOutlineMode ? 'glow' : 'classic');
+  } catch (e) {}
+  updateHighlightModeUI();
+
+  if (selectedMesh) {
+    if (isGlowOutlineMode) {
+      const relations = getVascularRelations(selectedMesh);
+      applyVesselTreeOutlines(selectedMesh, relations);
+    } else {
+      clearAllOutlines();
+    }
+  }
+}
+
+function toggleHighlightMode() {
+  setHighlightMode(!isGlowOutlineMode);
+}
+
+function updateHighlightModeUI() {
+  const btnTop = document.getElementById('btn-highlight-mode');
+  const txtTop = document.getElementById('txt-highlight-mode');
+  const iconTop = document.getElementById('icon-highlight-mode');
+  const btnClassic = document.getElementById('insp-mode-classic');
+  const btnGlow = document.getElementById('insp-mode-glow');
+
+  if (isGlowOutlineMode) {
+    if (btnTop) {
+      btnTop.classList.add('active');
+      btnTop.title = 'Chế độ xem: Phát Sáng (Click để chuyển sang Như Cũ)';
+    }
+    if (txtTop) txtTop.textContent = 'Phát Sáng ✨';
+    if (iconTop) iconTop.className = 'fa-solid fa-wand-magic-sparkles';
+    if (btnClassic) btnClassic.classList.remove('active');
+    if (btnGlow) btnGlow.classList.add('active');
+  } else {
+    if (btnTop) {
+      btnTop.classList.remove('active');
+      btnTop.title = 'Chế độ xem: Như Cũ (Click để chuyển sang Phát Sáng)';
+    }
+    if (txtTop) txtTop.textContent = 'Như Cũ';
+    if (iconTop) iconTop.className = 'fa-solid fa-palette';
+    if (btnClassic) btnClassic.classList.add('active');
+    if (btnGlow) btnGlow.classList.remove('active');
+  }
+}
 
 function escapeJsStr(str) {
   if (!str) return '';
@@ -2039,9 +2096,13 @@ function selectOrgan(mesh) {
   selectedMesh.material.emissive.setHex(0x5a4800);
   selectedMesh.material.emissiveIntensity = 0.55;
 
-  // Resolve vascular relationships & render 3D silhouette outlines
+  // Resolve vascular relationships & render 3D silhouette outlines if in Glow mode
   const relations = getVascularRelations(mesh);
-  applyVesselTreeOutlines(mesh, relations);
+  if (isGlowOutlineMode) {
+    applyVesselTreeOutlines(mesh, relations);
+  } else {
+    clearAllOutlines();
+  }
 
   openInspector(mesh, relations);
 }
@@ -4548,8 +4609,9 @@ function showStudyToast(msg) {
   }, 2600);
 }
 
-// Automatically initialize study mode when window loads
+// Automatically initialize study mode & highlight mode when window loads
 window.addEventListener('load', () => {
   initStudyMode();
+  updateHighlightModeUI();
 });
 
