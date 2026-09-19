@@ -239,9 +239,9 @@
       "desc": "Nhánh lớn nhất của động mạch nách (tách ở đoạn thứ ba), chia thành động mạch mũ vai (chui qua lỗ tam giác bả vai - tam đầu) và động mạch ngực - lưng."
     },
     "common carotid artery": {
-      "vi": "Động mạch cảnh chung (ĐM cảnh gốc)",
+      "vi": "Động mạch cảnh chung",
       "latin": "Arteria carotis communis",
-      "desc": "Động mạch chính cấp máu cho đầu, mặt, cổ. ĐM cảnh chung trái có thêm đoạn trong trung thất (tách từ quai ĐM chủ); ĐM cảnh chung phải bắt đầu từ sau khớp ức đòn (từ thân tay đầu). Từ khớp ức đòn trở lên, hai ĐM nằm trong rãnh cảnh với giới hạn: Thành sau là mỏm ngang đốt sống cổ (đốt C6 có củ Chassaignac - mốc ấn cầm máu); Thành trước ngoài là cơ ức đòn chũm (cơ tùy hành) và các cơ dưới móng; Thành trong là bao tạng cổ (thanh quản, khí quản, thực quản, tuyến giáp, TK quặt ngược). Trong bao cảnh: ĐM cảnh nằm trước-trong, TM cảnh trong nằm trước-ngoài, dây thần kinh X nằm sau ở giữa góc nhị diện."
+      "desc": "Động mạch chính cấp máu cho vùng đầu, mặt và cổ. Đi trong bao cảnh cùng với tĩnh mạch cảnh trong và thần kinh lang thang (dây X), chia thành ĐM cảnh trong và ĐM cảnh ngoài ngang mức bờ trên sụn giáp."
     },
     "middle meningeal artery": {
       "vi": "Động mạch màng não giữa",
@@ -267,16 +267,6 @@
       "vi": "Động mạch cằm",
       "latin": "Arteria mentalis",
       "desc": "Nhánh tận của động mạch huyệt răng dưới, chui qua lỗ cằm (mental foramen) cùng thần kinh cằm để cấp máu cho cơ và da vùng cằm cùng môi dưới."
-    },
-    "Left common carotid artery": {
-      "vi": "Động mạch cảnh chung trái",
-      "latin": "Arteria carotis communis sinistra",
-      "desc": "Động mạch chính cấp máu cho đầu, mặt, cổ. ĐM cảnh chung trái có thêm đoạn trong trung thất (tách từ quai ĐM chủ); ĐM cảnh chung phải bắt đầu từ sau khớp ức đòn (từ thân tay đầu). Từ khớp ức đòn trở lên, hai ĐM nằm trong rãnh cảnh với giới hạn: Thành sau là mỏm ngang đốt sống cổ (đốt C6 có củ Chassaignac - mốc ấn cầm máu); Thành trước ngoài là cơ ức đòn chũm (cơ tùy hành) và các cơ dưới móng; Thành trong là bao tạng cổ (thanh quản, khí quản, thực quản, tuyến giáp, TK quặt ngược). Trong bao cảnh: ĐM cảnh nằm trước-trong, TM cảnh trong nằm trước-ngoài, dây thần kinh X nằm sau ở giữa góc nhị diện."
-    },
-    "Right common carotid artery": {
-      "vi": "Động mạch cảnh chung phải",
-      "latin": "Arteria carotis communis dextra",
-      "desc": "Động mạch chính cấp máu cho đầu, mặt, cổ. ĐM cảnh chung trái có thêm đoạn trong trung thất (tách từ quai ĐM chủ); ĐM cảnh chung phải bắt đầu từ sau khớp ức đòn (từ thân tay đầu). Từ khớp ức đòn trở lên, hai ĐM nằm trong rãnh cảnh với giới hạn: Thành sau là mỏm ngang đốt sống cổ (đốt C6 có củ Chassaignac - mốc ấn cầm máu); Thành trước ngoài là cơ ức đòn chũm (cơ tùy hành) và các cơ dưới móng; Thành trong là bao tạng cổ (thanh quản, khí quản, thực quản, tuyến giáp, TK quặt ngược). Trong bao cảnh: ĐM cảnh nằm trước-trong, TM cảnh trong nằm trước-ngoài, dây thần kinh X nằm sau ở giữa góc nhị diện."
     }
   },
   "translations": {
