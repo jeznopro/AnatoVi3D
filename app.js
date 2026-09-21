@@ -332,11 +332,11 @@ async function initAnatomyModels() {
   }
 
   const queue = [
-    'models/muscles.glb',
-    'models/cardio.glb',
+    'models/nervous.glb',
     'models/visceral.glb',
     'models/joints.glb',
-    'models/nervous.glb'
+    'models/muscles.glb',
+    'models/cardio.glb'
   ];
 
   for (let file of queue) {
@@ -1218,14 +1218,14 @@ function setupMesh(mesh, sourceFile) {
     targetSystem = 'lymphatic';
     matConfig = PALETTE.spleen;
   }
-  // 13. NERVOUS / SENSORY (Brain, Brainstem, Spinal Cord, Nerves, Eye, Ear)
-  else if (nameLower.includes('nerve') || nameLower.includes('plexus') || nameLower.includes('ganglion') || nameLower.includes('cerebr') || nameLower.includes('cerebell') || nameLower.includes('brain') || nameLower.includes('cortex') || nameLower.includes('gyrus') || nameLower.includes('sulcus') || nameLower.includes('pons') || nameLower.includes('medulla') || nameLower.includes('olive') || nameLower.includes('pyramid') || nameLower.includes('nucleus') || nameLower.includes('colliculus') || nameLower.includes('thalamus') || nameLower.includes('spinal cord') || nameLower.includes('eyeball') || nameLower.includes('retina') || nameLower.includes('cornea') || nameLower.includes('sclera') || nameLower.includes('iris') || nameLower.includes('lens') || nameLower.includes('vitreous') || nameLower.includes('cochlea') || nameLower.includes('tympanic')) {
+  // 13. NERVOUS / SENSORY (Brain, Brainstem, Spinal Cord, Nerves, Eye, Ear, models/nervous.glb)
+  else if (sourceFile.includes('nervous') || nameLower.includes('nerve') || nameLower.includes('plexus') || nameLower.includes('ganglion') || nameLower.includes('cerebr') || nameLower.includes('cerebell') || nameLower.includes('brain') || nameLower.includes('cortex') || nameLower.includes('gyrus') || nameLower.includes('sulcus') || nameLower.includes('pons') || nameLower.includes('medulla') || nameLower.includes('olive') || nameLower.includes('pyramid') || nameLower.includes('nucleus') || nameLower.includes('colliculus') || nameLower.includes('thalamus') || nameLower.includes('spinal cord') || nameLower.includes('eyeball') || nameLower.includes('retina') || nameLower.includes('cornea') || nameLower.includes('sclera') || nameLower.includes('iris') || nameLower.includes('lens') || nameLower.includes('vitreous') || nameLower.includes('cochlea') || nameLower.includes('tympanic')) {
     targetSystem = 'nervous';
     if (anyMatch(nameLower, ['cerebrum', 'cortex', 'gyrus', 'sulcus', 'hemisphere', 'lobe'])) {
       matConfig = PALETTE.cerebrum;
     } else if (nameLower.includes('cerebellum')) {
       matConfig = PALETTE.cerebellum;
-    } else if (anyMatch(nameLower, ['pons', 'medulla', 'pyramid', 'olive', 'brainstem', 'spinal cord'])) {
+    } else if (anyMatch(nameLower, ['pons', 'medulla', 'pyramid', 'olive', 'brainstem', 'spinal cord', 'peduncle', 'vermis', 'fossa', 'nuclei'])) {
       matConfig = PALETTE.brainstem;
     } else {
       matConfig = PALETTE.nerve;
@@ -1954,7 +1954,8 @@ function applyVesselTreeOutlines(selectedMesh, relations) {
   // 1. Primary Outline for selected mesh (Gold / Cyan)
   selectedMesh.visible = true;
   selectedMesh.userData.isHidden = false;
-  const mainOutlineColor = (relations && relations.isVessel) ? 0x00f0ff : 0xfacc15;
+  const isNervous = selectedMesh.userData && selectedMesh.userData.system === 'nervous';
+  const mainOutlineColor = isNervous ? 0x00f0ff : ((relations && relations.isVessel) ? 0x00f0ff : 0xfacc15);
   createOutlineMesh(selectedMesh, mainOutlineColor, 0.0038, 0.95);
 
   if (!relations || !relations.isVessel) return;
@@ -2092,9 +2093,10 @@ function selectOrgan(mesh) {
   }
 
   selectedMesh = mesh;
-  selectedMesh.material.color.setHex(0xfacc15); // Neon chartreuse/gold highlight
-  selectedMesh.material.emissive.setHex(0x5a4800);
-  selectedMesh.material.emissiveIntensity = 0.55;
+  const isNerve = mesh.userData && mesh.userData.system === 'nervous';
+  selectedMesh.material.color.setHex(isNerve ? 0x00f0ff : 0xfacc15); // Vivid electric cyan for nerves, gold for other organs
+  selectedMesh.material.emissive.setHex(isNerve ? 0x0088ff : 0x5a4800);
+  selectedMesh.material.emissiveIntensity = isNerve ? 0.85 : 0.55;
 
   // Resolve vascular relationships & render 3D silhouette outlines if in Glow mode
   const relations = getVascularRelations(mesh);
@@ -2698,25 +2700,256 @@ function setCameraView(view) {
   }
 }
 
-let currentSearchMatches = [];
-
-function highlightSearchMatch(text, query) {
-  if (!text || !query) return text || '';
-  const idx = text.toLowerCase().indexOf(query.toLowerCase());
-  if (idx === -1) return text;
-  const before = text.substring(0, idx);
-  const match = text.substring(idx, idx + query.length);
-  const after = text.substring(idx + query.length);
-  return `${before}<span style="color:#00d2ff;background:rgba(0,210,255,0.22);padding:1px 4px;border-radius:4px;font-weight:800;">${match}</span>${after}`;
+// ========================================================
+// ADVANCED MEDICAL ANATOMY SEARCH & NERVOUS DIRECTORY
+// ========================================================
+function stripVietnamese(str) {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .toLowerCase()
+    .trim();
 }
 
-function selectSearchedOrgan(m) {
+const CRANIAL_NERVES_MAP = [
+  { num: 1, roman: 'i', vi: 'Thần kinh khứu giác (dây I)', en: 'Olfactory nerve (I)', clean: 'Olfactory nerve (I)' },
+  { num: 2, roman: 'ii', vi: 'Thần kinh thị giác (dây II)', en: 'Optic nerve (II)', clean: 'Optic nerve (II)' },
+  { num: 3, roman: 'iii', vi: 'Thần kinh vận nhãn (dây III)', en: 'Oculomotor nerve (III)', clean: 'Oculomotor nerve (III)' },
+  { num: 4, roman: 'iv', vi: 'Thần kinh ròng rọc (dây IV)', en: 'Trochlear nerve (IV)', clean: 'Trochlear nerve (IV)' },
+  { num: 5, roman: 'v', vi: 'Thần kinh sinh ba (dây V)', en: 'Trigeminal nerve (V)', clean: 'Trigeminal nerve (V)' },
+  { num: 6, roman: 'vi', vi: 'Thần kinh vận nhãn ngoài (dây VI)', en: 'Abducens nerve (VI)', clean: 'Abducens nerve (VI)' },
+  { num: 7, roman: 'vii', vi: 'Thần kinh mặt (dây VII)', en: 'Facial nerve (VII)', clean: 'Facial nerve (VII)' },
+  { num: 8, roman: 'viii', vi: 'Thần kinh tiền đình ốc tai (dây VIII)', en: 'Vestibulocochlear nerve (VIII)', clean: 'Vestibulocochlear nerve (VIII)' },
+  { num: 9, roman: 'ix', vi: 'Thần kinh thiệt hầu (dây IX)', en: 'Glossopharyngeal nerve (IX)', clean: 'Glossopharyngeal nerve (IX)' },
+  { num: 10, roman: 'x', vi: 'Thần kinh lang thang (dây X)', en: 'Vagus nerve (X)', clean: 'Vagus nerve (X)' },
+  { num: 11, roman: 'xi', vi: 'Thần kinh phụ (dây XI)', en: 'Accessory nerve (XI)', clean: 'Accessory nerve (XI)' },
+  { num: 12, roman: 'xii', vi: 'Thần kinh hạ thiệt (dây XII)', en: 'Hypoglossal nerve (XII)', clean: 'Hypoglossal nerve (XII)' }
+];
+
+const PREINDEXED_NERVES_CATALOG = [
+  // 12 Cranial Nerves
+  { cleanName: 'Olfactory nerve (I)', viName: 'Thần kinh khứu giác (dây I)', enName: 'Olfactory nerve (I)', latinName: 'Nervus olfactorius', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Optic nerve (II)', viName: 'Thần kinh thị giác (dây II)', enName: 'Optic nerve (II)', latinName: 'Nervus opticus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Oculomotor nerve (III)', viName: 'Thần kinh vận nhãn (dây III)', enName: 'Oculomotor nerve (III)', latinName: 'Nervus oculomotorius', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Trochlear nerve (IV)', viName: 'Thần kinh ròng rọc (dây IV)', enName: 'Trochlear nerve (IV)', latinName: 'Nervus trochlearis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Trigeminal nerve (V)', viName: 'Thần kinh sinh ba (dây V)', enName: 'Trigeminal nerve (V)', latinName: 'Nervus trigeminus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Ophthalmic nerve', viName: 'Thần kinh mắt (nhánh V1)', enName: 'Ophthalmic nerve', latinName: 'Nervus ophthalmicus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Maxillary nerve', viName: 'Thần kinh hàm trên (nhánh V2)', enName: 'Maxillary nerve', latinName: 'Nervus maxillaris', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Anterior division of mandibular nerve', viName: 'Thần kinh hàm dưới (nhánh V3)', enName: 'Mandibular nerve', latinName: 'Nervus mandibularis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Lingual nerve', viName: 'Thần kinh lưỡi', enName: 'Lingual nerve', latinName: 'Nervus lingualis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Inferior alveolar nerve', viName: 'Thần kinh huyệt răng dưới', enName: 'Inferior alveolar nerve', latinName: 'Nervus alveolaris inferior', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Mental nerve', viName: 'Thần kinh cằm', enName: 'Mental nerve', latinName: 'Nervus mentalis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Abducens nerve (VI)', viName: 'Thần kinh vận nhãn ngoài (dây VI)', enName: 'Abducens nerve (VI)', latinName: 'Nervus abducens', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Facial nerve (VII)', viName: 'Thần kinh mặt (dây VII)', enName: 'Facial nerve (VII)', latinName: 'Nervus facialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Vestibulocochlear nerve (VIII)', viName: 'Thần kinh tiền đình ốc tai (dây VIII)', enName: 'Vestibulocochlear nerve (VIII)', latinName: 'Nervus vestibulocochlearis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Glossopharyngeal nerve (IX)', viName: 'Thần kinh thiệt hầu (dây IX)', enName: 'Glossopharyngeal nerve (IX)', latinName: 'Nervus glossopharyngeus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Vagus nerve (X)', viName: 'Thần kinh lang thang (dây X)', enName: 'Vagus nerve (X)', latinName: 'Nervus vagus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Accessory nerve (XI)', viName: 'Thần kinh phụ (dây XI)', enName: 'Accessory nerve (XI)', latinName: 'Nervus accessorius', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Hypoglossal nerve (XII)', viName: 'Thần kinh hạ thiệt (dây XII)', enName: 'Hypoglossal nerve (XII)', latinName: 'Nervus hypoglossus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+
+  // Chi trên
+  { cleanName: 'Radial nerve', viName: 'Thần kinh quay', enName: 'Radial nerve', latinName: 'Nervus radialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Deep branch of radial nerve', viName: 'Nhánh sâu thần kinh quay', enName: 'Deep branch of radial nerve', latinName: 'Ramus profundus nervi radialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Superficial branch of radial nerve', viName: 'Nhánh nông thần kinh quay', enName: 'Superficial branch of radial nerve', latinName: 'Ramus superficialis nervi radialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Median nerve', viName: 'Thần kinh giữa', enName: 'Median nerve', latinName: 'Nervus medianus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Ulnar nerve', viName: 'Thần kinh trụ', enName: 'Ulnar nerve', latinName: 'Nervus ulnaris', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Axillary nerve', viName: 'Thần kinh nách', enName: 'Axillary nerve', latinName: 'Nervus axillaris', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Musculocutaneous nerve', viName: 'Thần kinh cơ bì', enName: 'Musculocutaneous nerve', latinName: 'Nervus musculocutaneus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Suprascapular nerve', viName: 'Thần kinh trên vai', enName: 'Suprascapular nerve', latinName: 'Nervus suprascapularis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Long thoracic nerve', viName: 'Thần kinh ngực dài', enName: 'Long thoracic nerve', latinName: 'Nervus thoracicus longus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Thoracodorsal nerve', viName: 'Thần kinh ngực lưng', enName: 'Thoracodorsal nerve', latinName: 'Nervus thoracodorsalis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+
+  // Chi dưới
+  { cleanName: 'Sciatic nerve', viName: 'Thần kinh ngồi (Thần kinh tọa / hông to)', enName: 'Sciatic nerve', latinName: 'Nervus ischiadicus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Femoral nerve', viName: 'Thần kinh đùi', enName: 'Femoral nerve', latinName: 'Nervus femoralis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Obturator nerve', viName: 'Thần kinh bịt', enName: 'Obturator nerve', latinName: 'Nervus obturatorius', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Tibial nerve', viName: 'Thần kinh chày', enName: 'Tibial nerve', latinName: 'Nervus tibialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Common fibular nerve', viName: 'Thần kinh mác chung', enName: 'Common fibular nerve', latinName: 'Nervus fibularis communis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Deep fibular nerve', viName: 'Thần kinh mác sâu', enName: 'Deep fibular nerve', latinName: 'Nervus fibularis profundus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Superficial fibular nerve', viName: 'Thần kinh mác nông', enName: 'Superficial fibular nerve', latinName: 'Nervus fibularis superficialis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Saphenous nerve', viName: 'Thần kinh hiển', enName: 'Saphenous nerve', latinName: 'Nervus saphenus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Sural nerve', viName: 'Thần kinh bắp chân', enName: 'Sural nerve', latinName: 'Nervus suralis', system: 'nervous', sourceFile: 'models/nervous.glb' },
+
+  // Thân mình & Khác
+  { cleanName: 'Intercostal nerves', viName: 'Các thần kinh gian sườn', enName: 'Intercostal nerves', latinName: 'Nervi intercostales', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Pudendal nerve', viName: 'Thần kinh thẹn', enName: 'Pudendal nerve', latinName: 'Nervus pudendus', system: 'nervous', sourceFile: 'models/nervous.glb' },
+  { cleanName: 'Sympathetic nerves', viName: 'Thần kinh giao cảm', enName: 'Sympathetic nerves', latinName: 'Nervi sympathici', system: 'nervous', sourceFile: 'models/nervous.glb' }
+];
+
+let currentSearchMatches = [];
+
+function highlightSearchMatch(text, rawQuery) {
+  if (!text || !rawQuery) return text || '';
+  const qClean = stripVietnamese(rawQuery)
+    .replace(/\b(?:day\s*tk|day\s*than\s*kinh|tk)\b/g, '')
+    .trim();
+  const tokens = [qClean, ...qClean.split(/\s+/)].filter(t => t.length >= 2);
+  if (tokens.length === 0) return text;
+
+  const stripped = stripVietnamese(text);
+  for (let t of tokens) {
+    const idx = stripped.indexOf(t);
+    if (idx !== -1) {
+      const matchLen = t.length;
+      const before = text.substring(0, idx);
+      const match = text.substring(idx, idx + matchLen);
+      const after = text.substring(idx + matchLen);
+      return `${before}<span style="color:#00d2ff;background:rgba(0,210,255,0.22);padding:1px 4px;border-radius:4px;font-weight:800;">${match}</span>${after}`;
+    }
+  }
+  return text;
+}
+
+function findAnatomySearchResults(query) {
+  const qStripped = stripVietnamese(query);
+  if (!qStripped) return [];
+
+  // Pool: all loaded meshes + preindexed nerves catalog if mesh not yet present in allMeshes
+  const pool = [];
+  const seenClean = new Set();
+
+  allMeshes.forEach(m => {
+    if (!m.userData) return;
+    const clean = (m.userData.cleanName || '').trim();
+    if (!clean) return;
+    seenClean.add(clean.toLowerCase());
+    pool.push({
+      isMesh: true,
+      meshRef: m,
+      cleanName: clean,
+      viName: m.userData.viName || clean,
+      enName: m.userData.enName || clean,
+      latinName: m.userData.latinName || clean,
+      system: m.userData.system || 'skeletal',
+      sourceFile: null
+    });
+  });
+
+  PREINDEXED_NERVES_CATALOG.forEach(cat => {
+    if (!seenClean.has(cat.cleanName.toLowerCase())) {
+      const existingMesh = allMeshes.find(m => {
+        const cn = (m.userData?.cleanName || '').toLowerCase();
+        return cn === cat.cleanName.toLowerCase() || cn.startsWith(cat.cleanName.toLowerCase());
+      });
+      pool.push({
+        isMesh: !!existingMesh,
+        meshRef: existingMesh || null,
+        cleanName: cat.cleanName,
+        viName: cat.viName,
+        enName: cat.enName,
+        latinName: cat.latinName,
+        system: cat.system,
+        sourceFile: cat.sourceFile
+      });
+    }
+  });
+
+  // 1. Cranial Nerve direct match: "dây 7", "day 7", "dây vii", "tk 7", "dây số 7", "dây tk 7"
+  const cranialMatch = qStripped.match(/^(?:day|tk|day tk|day than kinh)?\s*(?:so\s*)?([1-9]|1[0-2]|i{1,3}|iv|v|vi{1,3}|ix|x|xi{1,2})$/i);
+  if (cranialMatch) {
+    const token = cranialMatch[1].toLowerCase();
+    const cEntry = CRANIAL_NERVES_MAP.find(c => String(c.num) === token || c.roman === token);
+    if (cEntry) {
+      const match = pool.find(p => p.cleanName === cEntry.clean || p.viName.includes(`(${cEntry.roman.toUpperCase()})`) || p.viName.includes(`dây ${cEntry.roman.toUpperCase()}`));
+      if (match) return [match];
+    }
+  }
+
+  // 2. Query expansion
+  let expanded = qStripped
+    .replace(/\b(?:day\s*tk|day\s*than\s*kinh|tk)\b/g, 'than kinh')
+    .replace(/\b(?:dm|dong mach)\b/g, 'dong mach')
+    .replace(/\b(?:tm|tinh mach)\b/g, 'tinh mach')
+    .replace(/\b(?:hong to|toa|to\u1ea1)\b/g, 'ngoi');
+
+  const tokens = expanded.split(/\s+/).filter(t => t.length > 0);
+  const isNerveQuery = expanded.includes('than kinh');
+  const isArteryQuery = expanded.includes('dong mach');
+  const isVeinQuery = expanded.includes('tinh mach');
+
+  const scored = [];
+  pool.forEach(item => {
+    const vi = stripVietnamese(item.viName);
+    const en = stripVietnamese(item.enName);
+    const lat = stripVietnamese(item.latinName);
+    const combined = `${vi} ${en} ${lat}`;
+
+    let matches = tokens.every(t => combined.includes(t));
+    if (!matches && (combined.includes(qStripped) || vi.includes(qStripped) || en.includes(qStripped))) {
+      matches = true;
+    }
+    if (!matches) return;
+
+    let score = 0;
+    if (vi === qStripped || en === qStripped) score += 1000;
+    if (vi.startsWith(qStripped) || en.startsWith(qStripped)) score += 500;
+
+    tokens.forEach(t => {
+      const wordRegex = new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+      if (wordRegex.test(vi)) score += 140;
+      else if (vi.includes(t)) score += 30;
+
+      if (wordRegex.test(en)) score += 100;
+      else if (en.includes(t)) score += 20;
+
+      if (wordRegex.test(lat)) score += 80;
+    });
+
+    if (isNerveQuery && item.system === 'nervous') score += 180;
+    if (isArteryQuery && item.system === 'arterial') score += 180;
+    if (isVeinQuery && item.system === 'venous') score += 180;
+
+    score -= (item.cleanName.length * 0.4);
+
+    scored.push({ item, score });
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const unique = [];
+  const seenVi = new Set();
+  for (let s of scored) {
+    if (!seenVi.has(s.item.viName)) {
+      seenVi.add(s.item.viName);
+      unique.push(s.item);
+    }
+  }
+  return unique;
+}
+
+async function selectSearchedOrgan(target) {
   const input = document.getElementById('search-input');
   const results = document.getElementById('search-results');
-  if (input) input.value = m.userData.viName;
+  if (input) input.value = target.userData ? target.userData.viName : target.viName;
   if (results) results.style.display = 'none';
-  
-  const sysKey = m.userData.system;
+
+  let targetMesh = target.isMesh ? (target.meshRef || target) : target.meshRef;
+
+  // If model is not yet loaded in 3D scene (e.g. nervous.glb background download)
+  if (!targetMesh && target.sourceFile) {
+    if (typeof showStudyToast === 'function') {
+      showStudyToast(`Đang nạp mô hình ${target.viName}...`);
+    }
+    await loadModelFile(target.sourceFile);
+    targetMesh = allMeshes.find(m => {
+      const cn = (m.userData?.cleanName || '').toLowerCase();
+      return cn === target.cleanName.toLowerCase() || cn.startsWith(target.cleanName.toLowerCase());
+    });
+  }
+
+  if (!targetMesh) {
+    targetMesh = allMeshes.find(m => {
+      const vi = (m.userData?.viName || '').toLowerCase();
+      const cn = (m.userData?.cleanName || '').toLowerCase();
+      return vi === (target.viName || '').toLowerCase() || cn === (target.cleanName || '').toLowerCase();
+    });
+  }
+
+  if (!targetMesh) return;
+
+  const sysKey = targetMesh.userData.system;
   if (!SYSTEMS_CONFIG[sysKey].active) {
     if (sysKey === 'muscular') {
       stepMuscularLayer(6);
@@ -2728,9 +2961,22 @@ function selectSearchedOrgan(m) {
       toggleSystem(sysKey);
     }
   }
-  m.visible = true;
-  m.userData.isHidden = false;
-  selectOrgan(m);
+
+  // If selecting a nervous structure, make sure surrounding opaque muscles don't completely bury it
+  if (sysKey === 'nervous') {
+    SYSTEMS_CONFIG.nervous.active = true;
+    SYSTEMS_CONFIG.nervous.statusText = 'Bật';
+    if (SYSTEMS_CONFIG.muscular.active && SYSTEMS_CONFIG.muscular.layer > 4) {
+      stepMuscularLayer(3 - SYSTEMS_CONFIG.muscular.layer);
+    }
+    updateBottomBarUI();
+    updatePanelSteppersUI();
+    applyAllSystemsVisibility();
+  }
+
+  targetMesh.visible = true;
+  targetMesh.userData.isHidden = false;
+  selectOrgan(targetMesh);
   focusSelected();
 }
 
@@ -2758,29 +3004,14 @@ function setupSearch() {
   });
 
   input.addEventListener('input', () => {
-    const query = input.value.trim().toLowerCase();
+    const query = input.value.trim();
     if (!query) {
       currentSearchMatches = [];
       results.style.display = 'none';
       return;
     }
 
-    const matches = allMeshes.filter(m => {
-      const vi = (m.userData.viName || "").toLowerCase();
-      const en = (m.userData.enName || "").toLowerCase();
-      const lat = (m.userData.latinName || "").toLowerCase();
-      return vi.includes(query) || en.includes(query) || lat.includes(query);
-    });
-
-    const unique = [];
-    const seen = new Set();
-    for (let m of matches) {
-      if (!seen.has(m.userData.viName)) {
-        seen.add(m.userData.viName);
-        unique.push(m);
-      }
-    }
-
+    const unique = findAnatomySearchResults(query);
     currentSearchMatches = unique;
 
     results.innerHTML = '';
@@ -2790,24 +3021,24 @@ function setupSearch() {
       return;
     }
 
-    unique.slice(0, 8).forEach(m => {
-      const item = document.createElement('div');
-      item.className = 'search-item';
-      const sys = SYSTEMS_CONFIG[m.userData.system];
+    unique.slice(0, 8).forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'search-item';
+      const sys = SYSTEMS_CONFIG[item.system];
       const sysName = sys?.viName || sys?.name || 'Hệ Thống';
-      const viHighlighted = highlightSearchMatch(m.userData.viName, query);
-      const enHighlighted = highlightSearchMatch(m.userData.latinName || m.userData.enName, query);
-      item.innerHTML = `
+      const viHighlighted = highlightSearchMatch(item.viName, query);
+      const enHighlighted = highlightSearchMatch(item.latinName || item.enName, query);
+      el.innerHTML = `
         <div>
           <div class="search-item-vi">${viHighlighted}</div>
           <div class="search-item-en">${enHighlighted}</div>
         </div>
         <small style="color:var(--accent);background:rgba(0,210,255,0.12);border:1px solid rgba(0,210,255,0.25);padding:3px 8px;border-radius:6px;font-size:0.72rem;font-weight:700;">${sysName}</small>
       `;
-      item.addEventListener('click', () => {
-        selectSearchedOrgan(m);
+      el.addEventListener('click', () => {
+        selectSearchedOrgan(item);
       });
-      results.appendChild(item);
+      results.appendChild(el);
     });
 
     results.style.display = 'block';
@@ -3930,30 +4161,13 @@ function initStudySearch() {
   if (!input || !resultsEl) return;
 
   input.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
+    const query = e.target.value.trim();
     if (!query || query.length < 2) {
       resultsEl.style.display = 'none';
       return;
     }
 
-    const matched = [];
-    const seen = new Set();
-
-    for (let m of allMeshes) {
-      if (!m.userData || !m.userData.cleanName) continue;
-      const cn = m.userData.cleanName.toLowerCase();
-      const vi = (m.userData.viName || '').toLowerCase();
-      const lat = (m.userData.latinName || '').toLowerCase();
-      const en = (m.userData.enName || '').toLowerCase();
-
-      if (cn.includes(query) || vi.includes(query) || lat.includes(query) || en.includes(query)) {
-        if (!seen.has(m.userData.cleanName)) {
-          seen.add(m.userData.cleanName);
-          matched.push(m);
-          if (matched.length >= 8) break;
-        }
-      }
-    }
+    const matched = findAnatomySearchResults(query);
 
     if (matched.length === 0) {
       resultsEl.innerHTML = '<div style="padding: 10px; font-size: 0.76rem; color: #64748b; text-align: center;">Không tìm thấy chi tiết phù hợp</div>';
@@ -3961,13 +4175,15 @@ function initStudySearch() {
       return;
     }
 
-    resultsEl.innerHTML = matched.map(m => {
-      const inStudy = isMeshInStudy(m);
+    resultsEl.innerHTML = matched.slice(0, 8).map(m => {
+      const isMeshObj = m.isMesh && m.meshRef;
+      const inStudy = isMeshObj ? isMeshInStudy(m.meshRef) : false;
+      const cleanEscaped = (m.cleanName || '').replace(/'/g, "\\'");
       return `
-        <div class="search-item" onclick="onSelectStudySearchResult('${m.userData.cleanName.replace(/'/g, "\\'")}')" style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="search-item" onclick="onSelectStudySearchResult('${cleanEscaped}')" style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div class="search-item-title">${m.userData.viName || m.userData.cleanName}</div>
-            <div class="search-item-sub">${m.userData.latinName || m.userData.enName}</div>
+            <div class="search-item-title">${m.viName || m.cleanName}</div>
+            <div class="search-item-sub">${m.latinName || m.enName}</div>
           </div>
           <span style="font-size: 0.70rem; font-weight: 700; color: ${inStudy ? '#10b981' : '#facc15'};">${inStudy ? '✓ Đã có' : '+ Thêm'}</span>
         </div>
@@ -3983,9 +4199,27 @@ function initStudySearch() {
   });
 }
 
-function onSelectStudySearchResult(cleanName) {
-  const mesh = allMeshes.find(m => m.userData.cleanName && m.userData.cleanName.toLowerCase() === cleanName.toLowerCase());
+async function onSelectStudySearchResult(cleanName) {
+  let mesh = allMeshes.find(m => m.userData.cleanName && (m.userData.cleanName.toLowerCase() === cleanName.toLowerCase() || m.userData.cleanName.toLowerCase().startsWith(cleanName.toLowerCase())));
+  if (!mesh) {
+    const catItem = PREINDEXED_NERVES_CATALOG.find(c => c.cleanName.toLowerCase() === cleanName.toLowerCase());
+    if (catItem && catItem.sourceFile) {
+      showStudyToast(`Đang nạp mô hình ${catItem.viName}...`);
+      await loadModelFile(catItem.sourceFile);
+      mesh = allMeshes.find(m => m.userData.cleanName && (m.userData.cleanName.toLowerCase() === cleanName.toLowerCase() || m.userData.cleanName.toLowerCase().startsWith(cleanName.toLowerCase())));
+    }
+  }
+
   if (mesh) {
+    if (mesh.userData.system === 'nervous') {
+      SYSTEMS_CONFIG.nervous.active = true;
+      SYSTEMS_CONFIG.nervous.statusText = 'Bật';
+      updateBottomBarUI();
+      updatePanelSteppersUI();
+      applyAllSystemsVisibility();
+    }
+    mesh.visible = true;
+    mesh.userData.isHidden = false;
     if (!isMeshInStudy(mesh)) {
       addMeshToStudy(mesh);
     } else {
