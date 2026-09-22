@@ -17875,6 +17875,742 @@
       "latin": "Vena cava inferior",
       "system": "venous",
       "conceptId": "FMA10951"
+    },
+    "HYBRID_External_carotid_artery_l": {
+      "id": "HYBRID_External_carotid_artery_l",
+      "name": "External carotid artery.l",
+      "vi": "Động mạch cảnh ngoài (trái)",
+      "latin": "Arteria carotis externa sinister",
+      "system": "arterial",
+      "desc": "Động mạch cảnh ngoài - Tách từ ĐM cảnh chung ở ngang bờ trên sụn giáp (C4), đi qua tam giác Farabeuf sâu dưới cơ nhị thân và chui vào tuyến mang tai chia 2 ngành cùng (ĐM thái dương nông và ĐM hàm trên). Cấp máu cho toàn bộ vùng cổ, đầu và mặt."
+    },
+    "External carotid artery.l": {
+      "id": "HYBRID_External_carotid_artery_l",
+      "name": "External carotid artery.l",
+      "vi": "Động mạch cảnh ngoài (trái)",
+      "latin": "Arteria carotis externa sinister",
+      "system": "arterial",
+      "desc": "Động mạch cảnh ngoài - Tách từ ĐM cảnh chung ở ngang bờ trên sụn giáp (C4), đi qua tam giác Farabeuf sâu dưới cơ nhị thân và chui vào tuyến mang tai chia 2 ngành cùng (ĐM thái dương nông và ĐM hàm trên). Cấp máu cho toàn bộ vùng cổ, đầu và mặt."
+    },
+    "HYBRID_External_carotid_artery_r": {
+      "id": "HYBRID_External_carotid_artery_r",
+      "name": "External carotid artery.r",
+      "vi": "Động mạch cảnh ngoài (phải)",
+      "latin": "Arteria carotis externa dexter",
+      "system": "arterial",
+      "desc": "Động mạch cảnh ngoài - Tách từ ĐM cảnh chung ở ngang bờ trên sụn giáp (C4), đi qua tam giác Farabeuf sâu dưới cơ nhị thân và chui vào tuyến mang tai chia 2 ngành cùng (ĐM thái dương nông và ĐM hàm trên). Cấp máu cho toàn bộ vùng cổ, đầu và mặt."
+    },
+    "External carotid artery.r": {
+      "id": "HYBRID_External_carotid_artery_r",
+      "name": "External carotid artery.r",
+      "vi": "Động mạch cảnh ngoài (phải)",
+      "latin": "Arteria carotis externa dexter",
+      "system": "arterial",
+      "desc": "Động mạch cảnh ngoài - Tách từ ĐM cảnh chung ở ngang bờ trên sụn giáp (C4), đi qua tam giác Farabeuf sâu dưới cơ nhị thân và chui vào tuyến mang tai chia 2 ngành cùng (ĐM thái dương nông và ĐM hàm trên). Cấp máu cho toàn bộ vùng cổ, đầu và mặt."
+    },
+    "HYBRID_Internal_carotid_artery_l": {
+      "id": "HYBRID_Internal_carotid_artery_l",
+      "name": "Internal carotid artery.l",
+      "vi": "Động mạch cảnh trong đoạn cổ (trái)",
+      "latin": "Arteria carotis interna (pars cervicalis)",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Internal carotid artery.l": {
+      "id": "HYBRID_Internal_carotid_artery_l",
+      "name": "Internal carotid artery.l",
+      "vi": "Động mạch cảnh trong đoạn cổ (trái)",
+      "latin": "Arteria carotis interna (pars cervicalis)",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Internal_carotid_artery_r": {
+      "id": "HYBRID_Internal_carotid_artery_r",
+      "name": "Internal carotid artery.r",
+      "vi": "Động mạch cảnh trong đoạn cổ (phải)",
+      "latin": "Arteria carotis interna (pars cervicalis)",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Internal carotid artery.r": {
+      "id": "HYBRID_Internal_carotid_artery_r",
+      "name": "Internal carotid artery.r",
+      "vi": "Động mạch cảnh trong đoạn cổ (phải)",
+      "latin": "Arteria carotis interna (pars cervicalis)",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Facial_artery_l": {
+      "id": "HYBRID_Facial_artery_l",
+      "name": "Facial artery.l",
+      "vi": "Động mạch mặt (trái)",
+      "latin": "Arteria facialis sinister",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "Facial artery.l": {
+      "id": "HYBRID_Facial_artery_l",
+      "name": "Facial artery.l",
+      "vi": "Động mạch mặt (trái)",
+      "latin": "Arteria facialis sinister",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "HYBRID_Facial_artery_r": {
+      "id": "HYBRID_Facial_artery_r",
+      "name": "Facial artery.r",
+      "vi": "Động mạch mặt (phải)",
+      "latin": "Arteria facialis dexter",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "Facial artery.r": {
+      "id": "HYBRID_Facial_artery_r",
+      "name": "Facial artery.r",
+      "vi": "Động mạch mặt (phải)",
+      "latin": "Arteria facialis dexter",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "HYBRID_Submental_artery_l": {
+      "id": "HYBRID_Submental_artery_l",
+      "name": "Submental artery.l",
+      "vi": "Động mạch dưới cằm (trái)",
+      "latin": "Arteria submentalis sinister",
+      "system": "arterial",
+      "desc": "Động mạch dưới cằm - Nhánh lớn nhất của ĐM mặt ở vùng cổ, chạy nông dưới cơ hàm móng cấp máu cho sàn miệng và dưới cằm."
+    },
+    "Submental artery.l": {
+      "id": "HYBRID_Submental_artery_l",
+      "name": "Submental artery.l",
+      "vi": "Động mạch dưới cằm (trái)",
+      "latin": "Arteria submentalis sinister",
+      "system": "arterial",
+      "desc": "Động mạch dưới cằm - Nhánh lớn nhất của ĐM mặt ở vùng cổ, chạy nông dưới cơ hàm móng cấp máu cho sàn miệng và dưới cằm."
+    },
+    "HYBRID_Submental_artery_r": {
+      "id": "HYBRID_Submental_artery_r",
+      "name": "Submental artery.r",
+      "vi": "Động mạch dưới cằm (phải)",
+      "latin": "Arteria submentalis dexter",
+      "system": "arterial",
+      "desc": "Động mạch dưới cằm - Nhánh lớn nhất của ĐM mặt ở vùng cổ, chạy nông dưới cơ hàm móng cấp máu cho sàn miệng và dưới cằm."
+    },
+    "Submental artery.r": {
+      "id": "HYBRID_Submental_artery_r",
+      "name": "Submental artery.r",
+      "vi": "Động mạch dưới cằm (phải)",
+      "latin": "Arteria submentalis dexter",
+      "system": "arterial",
+      "desc": "Động mạch dưới cằm - Nhánh lớn nhất của ĐM mặt ở vùng cổ, chạy nông dưới cơ hàm móng cấp máu cho sàn miệng và dưới cằm."
+    },
+    "HYBRID_Inferior_labial_artery_l": {
+      "id": "HYBRID_Inferior_labial_artery_l",
+      "name": "Inferior labial artery.l",
+      "vi": "Động mạch môi dưới (trái)",
+      "latin": "Arteria labialis inferior sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Inferior labial artery.l": {
+      "id": "HYBRID_Inferior_labial_artery_l",
+      "name": "Inferior labial artery.l",
+      "vi": "Động mạch môi dưới (trái)",
+      "latin": "Arteria labialis inferior sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Inferior_labial_artery_r": {
+      "id": "HYBRID_Inferior_labial_artery_r",
+      "name": "Inferior labial artery.r",
+      "vi": "Động mạch môi dưới (phải)",
+      "latin": "Arteria labialis inferior dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Inferior labial artery.r": {
+      "id": "HYBRID_Inferior_labial_artery_r",
+      "name": "Inferior labial artery.r",
+      "vi": "Động mạch môi dưới (phải)",
+      "latin": "Arteria labialis inferior dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Superior_labial_artery_l": {
+      "id": "HYBRID_Superior_labial_artery_l",
+      "name": "Superior labial artery.l",
+      "vi": "Động mạch môi trên (trái)",
+      "latin": "Arteria labialis superior sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Superior labial artery.l": {
+      "id": "HYBRID_Superior_labial_artery_l",
+      "name": "Superior labial artery.l",
+      "vi": "Động mạch môi trên (trái)",
+      "latin": "Arteria labialis superior sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Superior_labial_artery_r": {
+      "id": "HYBRID_Superior_labial_artery_r",
+      "name": "Superior labial artery.r",
+      "vi": "Động mạch môi trên (phải)",
+      "latin": "Arteria labialis superior dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Superior labial artery.r": {
+      "id": "HYBRID_Superior_labial_artery_r",
+      "name": "Superior labial artery.r",
+      "vi": "Động mạch môi trên (phải)",
+      "latin": "Arteria labialis superior dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Angular_artery_l": {
+      "id": "HYBRID_Angular_artery_l",
+      "name": "Angular artery.l",
+      "vi": "Động mạch góc (trái)",
+      "latin": "Arteria angularis sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Angular artery.l": {
+      "id": "HYBRID_Angular_artery_l",
+      "name": "Angular artery.l",
+      "vi": "Động mạch góc (trái)",
+      "latin": "Arteria angularis sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Angular_artery_r": {
+      "id": "HYBRID_Angular_artery_r",
+      "name": "Angular artery.r",
+      "vi": "Động mạch góc (phải)",
+      "latin": "Arteria angularis dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Angular artery.r": {
+      "id": "HYBRID_Angular_artery_r",
+      "name": "Angular artery.r",
+      "vi": "Động mạch góc (phải)",
+      "latin": "Arteria angularis dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Ascending_pharyngeal_artery_l": {
+      "id": "HYBRID_Ascending_pharyngeal_artery_l",
+      "name": "Ascending pharyngeal artery.l",
+      "vi": "Động mạch hầu lên (trái)",
+      "latin": "Arteria pharyngea ascendens sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Ascending pharyngeal artery.l": {
+      "id": "HYBRID_Ascending_pharyngeal_artery_l",
+      "name": "Ascending pharyngeal artery.l",
+      "vi": "Động mạch hầu lên (trái)",
+      "latin": "Arteria pharyngea ascendens sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Ascending_pharyngeal_artery_r": {
+      "id": "HYBRID_Ascending_pharyngeal_artery_r",
+      "name": "Ascending pharyngeal artery.r",
+      "vi": "Động mạch hầu lên (phải)",
+      "latin": "Arteria pharyngea ascendens dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Ascending pharyngeal artery.r": {
+      "id": "HYBRID_Ascending_pharyngeal_artery_r",
+      "name": "Ascending pharyngeal artery.r",
+      "vi": "Động mạch hầu lên (phải)",
+      "latin": "Arteria pharyngea ascendens dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Occipital_artery_l": {
+      "id": "HYBRID_Occipital_artery_l",
+      "name": "Occipital artery.l",
+      "vi": "Động mạch chẩm (trái)",
+      "latin": "Arteria occipitalis sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Occipital artery.l": {
+      "id": "HYBRID_Occipital_artery_l",
+      "name": "Occipital artery.l",
+      "vi": "Động mạch chẩm (trái)",
+      "latin": "Arteria occipitalis sinister",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Occipital_artery_r": {
+      "id": "HYBRID_Occipital_artery_r",
+      "name": "Occipital artery.r",
+      "vi": "Động mạch chẩm (phải)",
+      "latin": "Arteria occipitalis dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Occipital artery.r": {
+      "id": "HYBRID_Occipital_artery_r",
+      "name": "Occipital artery.r",
+      "vi": "Động mạch chẩm (phải)",
+      "latin": "Arteria occipitalis dexter",
+      "system": "arterial",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Động Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Maxillary_artery_l": {
+      "id": "HYBRID_Maxillary_artery_l",
+      "name": "Maxillary artery.l",
+      "vi": "Động mạch hàm trên (trái)",
+      "latin": "Arteria maxillaris sinister",
+      "system": "arterial",
+      "desc": "Động mạch hàm trên - Ngành cùng lớn hơn của ĐM cảnh ngoài, đi sâu vào hố dưới thái dương và hố chân bướm khẩu cái, cấp máu cho hàm răng, mũi, khẩu cái và màng não (ĐM màng não giữa)."
+    },
+    "Maxillary artery.l": {
+      "id": "HYBRID_Maxillary_artery_l",
+      "name": "Maxillary artery.l",
+      "vi": "Động mạch hàm trên (trái)",
+      "latin": "Arteria maxillaris sinister",
+      "system": "arterial",
+      "desc": "Động mạch hàm trên - Ngành cùng lớn hơn của ĐM cảnh ngoài, đi sâu vào hố dưới thái dương và hố chân bướm khẩu cái, cấp máu cho hàm răng, mũi, khẩu cái và màng não (ĐM màng não giữa)."
+    },
+    "HYBRID_Maxillary_artery_r": {
+      "id": "HYBRID_Maxillary_artery_r",
+      "name": "Maxillary artery.r",
+      "vi": "Động mạch hàm trên (phải)",
+      "latin": "Arteria maxillaris dexter",
+      "system": "arterial",
+      "desc": "Động mạch hàm trên - Ngành cùng lớn hơn của ĐM cảnh ngoài, đi sâu vào hố dưới thái dương và hố chân bướm khẩu cái, cấp máu cho hàm răng, mũi, khẩu cái và màng não (ĐM màng não giữa)."
+    },
+    "Maxillary artery.r": {
+      "id": "HYBRID_Maxillary_artery_r",
+      "name": "Maxillary artery.r",
+      "vi": "Động mạch hàm trên (phải)",
+      "latin": "Arteria maxillaris dexter",
+      "system": "arterial",
+      "desc": "Động mạch hàm trên - Ngành cùng lớn hơn của ĐM cảnh ngoài, đi sâu vào hố dưới thái dương và hố chân bướm khẩu cái, cấp máu cho hàm răng, mũi, khẩu cái và màng não (ĐM màng não giữa)."
+    },
+    "HYBRID_Superficial_temporal_artery_l": {
+      "id": "HYBRID_Superficial_temporal_artery_l",
+      "name": "Superficial temporal artery.l",
+      "vi": "Động mạch thái dương nông (trái)",
+      "latin": "Arteria temporalis superficialis sinister",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "Superficial temporal artery.l": {
+      "id": "HYBRID_Superficial_temporal_artery_l",
+      "name": "Superficial temporal artery.l",
+      "vi": "Động mạch thái dương nông (trái)",
+      "latin": "Arteria temporalis superficialis sinister",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "HYBRID_Superficial_temporal_artery_r": {
+      "id": "HYBRID_Superficial_temporal_artery_r",
+      "name": "Superficial temporal artery.r",
+      "vi": "Động mạch thái dương nông (phải)",
+      "latin": "Arteria temporalis superficialis dexter",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "Superficial temporal artery.r": {
+      "id": "HYBRID_Superficial_temporal_artery_r",
+      "name": "Superficial temporal artery.r",
+      "vi": "Động mạch thái dương nông (phải)",
+      "latin": "Arteria temporalis superficialis dexter",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "HYBRID_Frontal_branch_of_superficial_temporal_artery_l": {
+      "id": "HYBRID_Frontal_branch_of_superficial_temporal_artery_l",
+      "name": "Frontal branch of superficial temporal artery.l",
+      "vi": "Nhánh trán ĐM thái dương nông (trái)",
+      "latin": "Ramus frontalis arteriae temporalis superficialis",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "Frontal branch of superficial temporal artery.l": {
+      "id": "HYBRID_Frontal_branch_of_superficial_temporal_artery_l",
+      "name": "Frontal branch of superficial temporal artery.l",
+      "vi": "Nhánh trán ĐM thái dương nông (trái)",
+      "latin": "Ramus frontalis arteriae temporalis superficialis",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "HYBRID_Frontal_branch_of_superficial_temporal_artery_r": {
+      "id": "HYBRID_Frontal_branch_of_superficial_temporal_artery_r",
+      "name": "Frontal branch of superficial temporal artery.r",
+      "vi": "Nhánh trán ĐM thái dương nông (phải)",
+      "latin": "Ramus frontalis arteriae temporalis superficialis",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "Frontal branch of superficial temporal artery.r": {
+      "id": "HYBRID_Frontal_branch_of_superficial_temporal_artery_r",
+      "name": "Frontal branch of superficial temporal artery.r",
+      "vi": "Nhánh trán ĐM thái dương nông (phải)",
+      "latin": "Ramus frontalis arteriae temporalis superficialis",
+      "system": "arterial",
+      "desc": "Động mạch thái dương nông - Ngành cùng của ĐM cảnh ngoài, đi lên trước tai (nơi có mốc bắt mạch thái dương nông) cấp máu cho vùng thái dương và đỉnh sọ."
+    },
+    "HYBRID_Transverse_facial_artery_l": {
+      "id": "HYBRID_Transverse_facial_artery_l",
+      "name": "Transverse facial artery.l",
+      "vi": "Động mạch ngang mặt (trái)",
+      "latin": "Arteria transversa faciei sinister",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "Transverse facial artery.l": {
+      "id": "HYBRID_Transverse_facial_artery_l",
+      "name": "Transverse facial artery.l",
+      "vi": "Động mạch ngang mặt (trái)",
+      "latin": "Arteria transversa faciei sinister",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "HYBRID_Transverse_facial_artery_r": {
+      "id": "HYBRID_Transverse_facial_artery_r",
+      "name": "Transverse facial artery.r",
+      "vi": "Động mạch ngang mặt (phải)",
+      "latin": "Arteria transversa faciei dexter",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "Transverse facial artery.r": {
+      "id": "HYBRID_Transverse_facial_artery_r",
+      "name": "Transverse facial artery.r",
+      "vi": "Động mạch ngang mặt (phải)",
+      "latin": "Arteria transversa faciei dexter",
+      "system": "arterial",
+      "desc": "Động mạch mặt - Nhánh bên trước của ĐM cảnh ngoài, bắt chéo bờ dưới xương hàm dưới ở góc trước cơ cắn (mốc bắt mạch mặt) để lên vùng mặt."
+    },
+    "HYBRID_Internal_jugular_vein_l": {
+      "id": "HYBRID_Internal_jugular_vein_l",
+      "name": "Internal jugular vein.l",
+      "vi": "Tĩnh mạch cảnh trong đoạn cổ (trái)",
+      "latin": "Vena jugularis interna (pars cervicalis)",
+      "system": "venous",
+      "desc": "Tĩnh mạch cảnh trong (đoạn cổ) - Thân tĩnh mạch lớn nhất ở cổ thu nhận máu từ não, mặt và cổ. Tạo nên giới hạn sau của Tam giác Farabeuf."
+    },
+    "Internal jugular vein.l": {
+      "id": "HYBRID_Internal_jugular_vein_l",
+      "name": "Internal jugular vein.l",
+      "vi": "Tĩnh mạch cảnh trong đoạn cổ (trái)",
+      "latin": "Vena jugularis interna (pars cervicalis)",
+      "system": "venous",
+      "desc": "Tĩnh mạch cảnh trong (đoạn cổ) - Thân tĩnh mạch lớn nhất ở cổ thu nhận máu từ não, mặt và cổ. Tạo nên giới hạn sau của Tam giác Farabeuf."
+    },
+    "HYBRID_Internal_jugular_vein_r": {
+      "id": "HYBRID_Internal_jugular_vein_r",
+      "name": "Internal jugular vein.r",
+      "vi": "Tĩnh mạch cảnh trong đoạn cổ (phải)",
+      "latin": "Vena jugularis interna (pars cervicalis)",
+      "system": "venous",
+      "desc": "Tĩnh mạch cảnh trong (đoạn cổ) - Thân tĩnh mạch lớn nhất ở cổ thu nhận máu từ não, mặt và cổ. Tạo nên giới hạn sau của Tam giác Farabeuf."
+    },
+    "Internal jugular vein.r": {
+      "id": "HYBRID_Internal_jugular_vein_r",
+      "name": "Internal jugular vein.r",
+      "vi": "Tĩnh mạch cảnh trong đoạn cổ (phải)",
+      "latin": "Vena jugularis interna (pars cervicalis)",
+      "system": "venous",
+      "desc": "Tĩnh mạch cảnh trong (đoạn cổ) - Thân tĩnh mạch lớn nhất ở cổ thu nhận máu từ não, mặt và cổ. Tạo nên giới hạn sau của Tam giác Farabeuf."
+    },
+    "HYBRID_Common_facial_vein_l": {
+      "id": "HYBRID_Common_facial_vein_l",
+      "name": "Common facial vein.l",
+      "vi": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf trái)",
+      "latin": "Vena facialis communis / Truncus thyrolinguofacialis sinister",
+      "system": "venous",
+      "desc": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf) - Hợp lưu của tĩnh mạch mặt, tĩnh mạch lưỡi và tĩnh mạch giáp trên đổ vào tĩnh mạch cảnh trong. Tạo nên giới hạn dưới của Tam giác Farabeuf (mốc phẫu thuật quan trọng tìm ĐM cảnh ngoài)."
+    },
+    "Common facial vein.l": {
+      "id": "HYBRID_Common_facial_vein_l",
+      "name": "Common facial vein.l",
+      "vi": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf trái)",
+      "latin": "Vena facialis communis / Truncus thyrolinguofacialis sinister",
+      "system": "venous",
+      "desc": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf) - Hợp lưu của tĩnh mạch mặt, tĩnh mạch lưỡi và tĩnh mạch giáp trên đổ vào tĩnh mạch cảnh trong. Tạo nên giới hạn dưới của Tam giác Farabeuf (mốc phẫu thuật quan trọng tìm ĐM cảnh ngoài)."
+    },
+    "HYBRID_Common_facial_vein_r": {
+      "id": "HYBRID_Common_facial_vein_r",
+      "name": "Common facial vein.r",
+      "vi": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf phải)",
+      "latin": "Vena facialis communis / Truncus thyrolinguofacialis dexter",
+      "system": "venous",
+      "desc": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf) - Hợp lưu của tĩnh mạch mặt, tĩnh mạch lưỡi và tĩnh mạch giáp trên đổ vào tĩnh mạch cảnh trong. Tạo nên giới hạn dưới của Tam giác Farabeuf (mốc phẫu thuật quan trọng tìm ĐM cảnh ngoài)."
+    },
+    "Common facial vein.r": {
+      "id": "HYBRID_Common_facial_vein_r",
+      "name": "Common facial vein.r",
+      "vi": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf phải)",
+      "latin": "Vena facialis communis / Truncus thyrolinguofacialis dexter",
+      "system": "venous",
+      "desc": "Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf) - Hợp lưu của tĩnh mạch mặt, tĩnh mạch lưỡi và tĩnh mạch giáp trên đổ vào tĩnh mạch cảnh trong. Tạo nên giới hạn dưới của Tam giác Farabeuf (mốc phẫu thuật quan trọng tìm ĐM cảnh ngoài)."
+    },
+    "HYBRID_Lingual_vein_l": {
+      "id": "HYBRID_Lingual_vein_l",
+      "name": "Lingual vein.l",
+      "vi": "Tĩnh mạch lưỡi (trái)",
+      "latin": "Vena lingualis sinister",
+      "system": "venous",
+      "desc": "Tĩnh mạch lưỡi - Dẫn lưu máu từ lưỡi và sàn miệng đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "Lingual vein.l": {
+      "id": "HYBRID_Lingual_vein_l",
+      "name": "Lingual vein.l",
+      "vi": "Tĩnh mạch lưỡi (trái)",
+      "latin": "Vena lingualis sinister",
+      "system": "venous",
+      "desc": "Tĩnh mạch lưỡi - Dẫn lưu máu từ lưỡi và sàn miệng đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "HYBRID_Lingual_vein_r": {
+      "id": "HYBRID_Lingual_vein_r",
+      "name": "Lingual vein.r",
+      "vi": "Tĩnh mạch lưỡi (phải)",
+      "latin": "Vena lingualis dexter",
+      "system": "venous",
+      "desc": "Tĩnh mạch lưỡi - Dẫn lưu máu từ lưỡi và sàn miệng đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "Lingual vein.r": {
+      "id": "HYBRID_Lingual_vein_r",
+      "name": "Lingual vein.r",
+      "vi": "Tĩnh mạch lưỡi (phải)",
+      "latin": "Vena lingualis dexter",
+      "system": "venous",
+      "desc": "Tĩnh mạch lưỡi - Dẫn lưu máu từ lưỡi và sàn miệng đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "HYBRID_Superior_thyroid_vein_l": {
+      "id": "HYBRID_Superior_thyroid_vein_l",
+      "name": "Superior thyroid vein.l",
+      "vi": "Tĩnh mạch giáp trên (trái)",
+      "latin": "Vena thyroidea superior sinister",
+      "system": "venous",
+      "desc": "Tĩnh mạch giáp trên - Dẫn lưu máu từ cực trên tuyến giáp đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "Superior thyroid vein.l": {
+      "id": "HYBRID_Superior_thyroid_vein_l",
+      "name": "Superior thyroid vein.l",
+      "vi": "Tĩnh mạch giáp trên (trái)",
+      "latin": "Vena thyroidea superior sinister",
+      "system": "venous",
+      "desc": "Tĩnh mạch giáp trên - Dẫn lưu máu từ cực trên tuyến giáp đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "HYBRID_Superior_thyroid_vein_r": {
+      "id": "HYBRID_Superior_thyroid_vein_r",
+      "name": "Superior thyroid vein.r",
+      "vi": "Tĩnh mạch giáp trên (phải)",
+      "latin": "Vena thyroidea superior dexter",
+      "system": "venous",
+      "desc": "Tĩnh mạch giáp trên - Dẫn lưu máu từ cực trên tuyến giáp đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "Superior thyroid vein.r": {
+      "id": "HYBRID_Superior_thyroid_vein_r",
+      "name": "Superior thyroid vein.r",
+      "vi": "Tĩnh mạch giáp trên (phải)",
+      "latin": "Vena thyroidea superior dexter",
+      "system": "venous",
+      "desc": "Tĩnh mạch giáp trên - Dẫn lưu máu từ cực trên tuyến giáp đổ vào Thân tĩnh mạch giáp - lưỡi - mặt (Thân Farabeuf)."
+    },
+    "HYBRID_Facial_vein_l": {
+      "id": "HYBRID_Facial_vein_l",
+      "name": "Facial vein.l",
+      "vi": "Tĩnh mạch mặt (trái)",
+      "latin": "Vena facialis sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Facial vein.l": {
+      "id": "HYBRID_Facial_vein_l",
+      "name": "Facial vein.l",
+      "vi": "Tĩnh mạch mặt (trái)",
+      "latin": "Vena facialis sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Facial_vein_r": {
+      "id": "HYBRID_Facial_vein_r",
+      "name": "Facial vein.r",
+      "vi": "Tĩnh mạch mặt (phải)",
+      "latin": "Vena facialis dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Facial vein.r": {
+      "id": "HYBRID_Facial_vein_r",
+      "name": "Facial vein.r",
+      "vi": "Tĩnh mạch mặt (phải)",
+      "latin": "Vena facialis dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Retromandibular_vein_l": {
+      "id": "HYBRID_Retromandibular_vein_l",
+      "name": "Retromandibular vein.l",
+      "vi": "Tĩnh mạch sau hàm dưới (trái)",
+      "latin": "Vena retromandibularis sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Retromandibular vein.l": {
+      "id": "HYBRID_Retromandibular_vein_l",
+      "name": "Retromandibular vein.l",
+      "vi": "Tĩnh mạch sau hàm dưới (trái)",
+      "latin": "Vena retromandibularis sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Retromandibular_vein_r": {
+      "id": "HYBRID_Retromandibular_vein_r",
+      "name": "Retromandibular vein.r",
+      "vi": "Tĩnh mạch sau hàm dưới (phải)",
+      "latin": "Vena retromandibularis dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Retromandibular vein.r": {
+      "id": "HYBRID_Retromandibular_vein_r",
+      "name": "Retromandibular vein.r",
+      "vi": "Tĩnh mạch sau hàm dưới (phải)",
+      "latin": "Vena retromandibularis dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_External_jugular_vein_l": {
+      "id": "HYBRID_External_jugular_vein_l",
+      "name": "External jugular vein.l",
+      "vi": "Tĩnh mạch cảnh ngoài (trái)",
+      "latin": "Vena jugularis externa sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "External jugular vein.l": {
+      "id": "HYBRID_External_jugular_vein_l",
+      "name": "External jugular vein.l",
+      "vi": "Tĩnh mạch cảnh ngoài (trái)",
+      "latin": "Vena jugularis externa sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_External_jugular_vein_r": {
+      "id": "HYBRID_External_jugular_vein_r",
+      "name": "External jugular vein.r",
+      "vi": "Tĩnh mạch cảnh ngoài (phải)",
+      "latin": "Vena jugularis externa dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "External jugular vein.r": {
+      "id": "HYBRID_External_jugular_vein_r",
+      "name": "External jugular vein.r",
+      "vi": "Tĩnh mạch cảnh ngoài (phải)",
+      "latin": "Vena jugularis externa dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Anterior_jugular_vein_l": {
+      "id": "HYBRID_Anterior_jugular_vein_l",
+      "name": "Anterior jugular vein.l",
+      "vi": "Tĩnh mạch cảnh trước (trái)",
+      "latin": "Vena jugularis anterior sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Anterior jugular vein.l": {
+      "id": "HYBRID_Anterior_jugular_vein_l",
+      "name": "Anterior jugular vein.l",
+      "vi": "Tĩnh mạch cảnh trước (trái)",
+      "latin": "Vena jugularis anterior sinister",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Anterior_jugular_vein_r": {
+      "id": "HYBRID_Anterior_jugular_vein_r",
+      "name": "Anterior jugular vein.r",
+      "vi": "Tĩnh mạch cảnh trước (phải)",
+      "latin": "Vena jugularis anterior dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "Anterior jugular vein.r": {
+      "id": "HYBRID_Anterior_jugular_vein_r",
+      "name": "Anterior jugular vein.r",
+      "vi": "Tĩnh mạch cảnh trước (phải)",
+      "latin": "Vena jugularis anterior dexter",
+      "system": "venous",
+      "desc": "Cấu trúc giải phẫu thuộc Hệ Tĩnh Mạch. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration)."
+    },
+    "HYBRID_Hypoglossal_nerve_XII_l": {
+      "id": "HYBRID_Hypoglossal_nerve_XII_l",
+      "name": "Hypoglossal nerve (XII).l",
+      "vi": "Thần kinh hạ thiệt (dây XII trái - Bờ trên Tam giác Farabeuf)",
+      "latin": "Nervus hypoglossus sinister (XII)",
+      "system": "nervous",
+      "desc": "Thần kinh hạ thiệt (dây thần kinh sọ số XII) - Chi phối vận động toàn bộ các cơ nội tại và ngoại lai của lưỡi. Bắt chéo phía ngoài ĐM cảnh trong và ĐM cảnh ngoài, tạo nên giới hạn trên của Tam giác Farabeuf."
+    },
+    "Hypoglossal nerve (XII).l": {
+      "id": "HYBRID_Hypoglossal_nerve_XII_l",
+      "name": "Hypoglossal nerve (XII).l",
+      "vi": "Thần kinh hạ thiệt (dây XII trái - Bờ trên Tam giác Farabeuf)",
+      "latin": "Nervus hypoglossus sinister (XII)",
+      "system": "nervous",
+      "desc": "Thần kinh hạ thiệt (dây thần kinh sọ số XII) - Chi phối vận động toàn bộ các cơ nội tại và ngoại lai của lưỡi. Bắt chéo phía ngoài ĐM cảnh trong và ĐM cảnh ngoài, tạo nên giới hạn trên của Tam giác Farabeuf."
+    },
+    "HYBRID_Hypoglossal_nerve_XII_r": {
+      "id": "HYBRID_Hypoglossal_nerve_XII_r",
+      "name": "Hypoglossal nerve (XII).r",
+      "vi": "Thần kinh hạ thiệt (dây XII phải - Bờ trên Tam giác Farabeuf)",
+      "latin": "Nervus hypoglossus dexter (XII)",
+      "system": "nervous",
+      "desc": "Thần kinh hạ thiệt (dây thần kinh sọ số XII) - Chi phối vận động toàn bộ các cơ nội tại và ngoại lai của lưỡi. Bắt chéo phía ngoài ĐM cảnh trong và ĐM cảnh ngoài, tạo nên giới hạn trên của Tam giác Farabeuf."
+    },
+    "Hypoglossal nerve (XII).r": {
+      "id": "HYBRID_Hypoglossal_nerve_XII_r",
+      "name": "Hypoglossal nerve (XII).r",
+      "vi": "Thần kinh hạ thiệt (dây XII phải - Bờ trên Tam giác Farabeuf)",
+      "latin": "Nervus hypoglossus dexter (XII)",
+      "system": "nervous",
+      "desc": "Thần kinh hạ thiệt (dây thần kinh sọ số XII) - Chi phối vận động toàn bộ các cơ nội tại và ngoại lai của lưỡi. Bắt chéo phía ngoài ĐM cảnh trong và ĐM cảnh ngoài, tạo nên giới hạn trên của Tam giác Farabeuf."
+    },
+    "HYBRID_Facial_nerve_VII_l": {
+      "id": "HYBRID_Facial_nerve_VII_l",
+      "name": "Facial nerve (VII).l",
+      "vi": "Thần kinh mặt (dây VII trái - Nông trong tuyến mang tai)",
+      "latin": "Nervus facialis sinister (VII)",
+      "system": "nervous",
+      "desc": "Thần kinh mặt (dây thần kinh sọ số VII) - Chi phối vận động các cơ biểu cảm nét mặt. Đi qua tuyến mang tai ở lớp nông nhất, bắt chéo phía ngoài tĩnh mạch cảnh ngoài và động mạch cảnh ngoài."
+    },
+    "Facial nerve (VII).l": {
+      "id": "HYBRID_Facial_nerve_VII_l",
+      "name": "Facial nerve (VII).l",
+      "vi": "Thần kinh mặt (dây VII trái - Nông trong tuyến mang tai)",
+      "latin": "Nervus facialis sinister (VII)",
+      "system": "nervous",
+      "desc": "Thần kinh mặt (dây thần kinh sọ số VII) - Chi phối vận động các cơ biểu cảm nét mặt. Đi qua tuyến mang tai ở lớp nông nhất, bắt chéo phía ngoài tĩnh mạch cảnh ngoài và động mạch cảnh ngoài."
+    },
+    "HYBRID_Facial_nerve_VII_r": {
+      "id": "HYBRID_Facial_nerve_VII_r",
+      "name": "Facial nerve (VII).r",
+      "vi": "Thần kinh mặt (dây VII phải - Nông trong tuyến mang tai)",
+      "latin": "Nervus facialis dexter (VII)",
+      "system": "nervous",
+      "desc": "Thần kinh mặt (dây thần kinh sọ số VII) - Chi phối vận động các cơ biểu cảm nét mặt. Đi qua tuyến mang tai ở lớp nông nhất, bắt chéo phía ngoài tĩnh mạch cảnh ngoài và động mạch cảnh ngoài."
+    },
+    "Facial nerve (VII).r": {
+      "id": "HYBRID_Facial_nerve_VII_r",
+      "name": "Facial nerve (VII).r",
+      "vi": "Thần kinh mặt (dây VII phải - Nông trong tuyến mang tai)",
+      "latin": "Nervus facialis dexter (VII)",
+      "system": "nervous",
+      "desc": "Thần kinh mặt (dây thần kinh sọ số VII) - Chi phối vận động các cơ biểu cảm nét mặt. Đi qua tuyến mang tai ở lớp nông nhất, bắt chéo phía ngoài tĩnh mạch cảnh ngoài và động mạch cảnh ngoài."
     }
   },
   "concepts": {

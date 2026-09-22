@@ -451,8 +451,93 @@ async function initAnatomyModels() {
     }
     await Promise.all(workers);
 
-    updateProgress(100, 'Hoàn tất khởi tạo mô hình giải phẫu BodyParts3D!');
-    console.log(`Đã nạp thành công ${allMeshes.length} meshes BodyParts3D vào không gian 3D!`);
+    // ========================================================
+    // LOAD HYBRID CERVICAL VASCULATURE & CRANIAL NERVES
+    // (Farabeuf's Triangle, External Carotid, Jugular & CN XII/VII)
+    // ========================================================
+    updateProgress(96, 'Đang ghép nối mô hình mạch máu & thần kinh cổ (Tam giác Farabeuf)...');
+    try {
+      const hybridMetaRes = await fetch('data/hybrid_cervical_meta.json');
+      const hybridMetaList = hybridMetaRes.ok ? await hybridMetaRes.json() : [];
+      const hybridMetaMap = {};
+      for (let m of hybridMetaList) {
+        hybridMetaMap[m.name] = m;
+      }
+
+      const gltfLoader = new THREE.GLTFLoader();
+      await new Promise((resolve) => {
+        gltfLoader.load(
+          'models/hybrid_cervical.glb',
+          (gltf) => {
+            const root = gltf.scene;
+            const hybridMeshes = [];
+            root.traverse((child) => {
+              if (child.isMesh) {
+                hybridMeshes.push(child);
+              }
+            });
+
+            for (let mesh of hybridMeshes) {
+              const meta = hybridMetaMap[mesh.name] || {};
+              const sysKey = meta.system || 'arterial';
+              let mat = SYSTEM_MATERIALS_BP3D[sysKey] || SYSTEM_MATERIALS_BP3D.arterial;
+              mesh.material = mat.clone();
+
+              if (!mesh.geometry.boundingBox) {
+                mesh.geometry.computeBoundingBox();
+              }
+              mesh.geometry.computeBoundingSphere();
+
+              const bounds = meta.bounds || [
+                [mesh.geometry.boundingBox.min.x, mesh.geometry.boundingBox.min.y, mesh.geometry.boundingBox.min.z],
+                [mesh.geometry.boundingBox.max.x, mesh.geometry.boundingBox.max.y, mesh.geometry.boundingBox.max.z]
+              ];
+              const center = meta.center || [
+                (bounds[0][0] + bounds[1][0]) / 2,
+                (bounds[0][1] + bounds[1][1]) / 2,
+                (bounds[0][2] + bounds[1][2]) / 2
+              ];
+
+              const viEntry = bodyParts3DVi?.parts?.[mesh.name] || {};
+              const viName = viEntry.vi || meta.vi || mesh.name;
+              const latinName = viEntry.latin || meta.latin || '';
+              const desc = viEntry.desc || meta.desc || `Cấu trúc giải phẫu vùng cổ thuộc ${SYSTEMS_CONFIG[sysKey]?.viName || sysKey}. Nguồn: Mô hình giải phẫu ghép nối siêu chi tiết (Hybrid Integration).`;
+
+              mesh.userData = {
+                id: 'HYBRID_' + mesh.name.replace(/[^a-zA-Z0-9]/g, '_'),
+                cleanName: viName,
+                rawName: mesh.name,
+                enName: mesh.name,
+                viName: viName,
+                latinName: latinName,
+                system: sysKey,
+                desc: desc,
+                originalColor: mesh.material.color.getHex(),
+                originalMaterial: mesh.material,
+                bounds: bounds,
+                center: center
+              };
+
+              mesh.frustumCulled = true;
+              scene.add(mesh);
+              allMeshes.push(mesh);
+            }
+            console.log(`Đã nạp thành công ${hybridMeshes.length} meshes Hybrid Cổ (Tam giác Farabeuf & Cảnh Ngoài)!`);
+            resolve();
+          },
+          undefined,
+          (err) => {
+            console.warn('Lỗi nạp hybrid_cervical.glb:', err);
+            resolve();
+          }
+        );
+      });
+    } catch (hybridErr) {
+      console.warn('Lỗi nạp hybrid cervical:', hybridErr);
+    }
+
+    updateProgress(100, 'Hoàn tất khởi tạo mô hình giải phẫu BodyParts3D & Hybrid!');
+    console.log(`Đã nạp thành công ${allMeshes.length} meshes vào không gian 3D!`);
     window.allMeshes = allMeshes;
 
     applyAllSystemsVisibility();
@@ -2886,6 +2971,7 @@ function findAnatomySearchResults(query) {
 
   // 2. Query expansion
   let expanded = qStripped
+    .replace(/[-_–—/]/g, ' ')
     .replace(/\b(?:day\s*tk|day\s*than\s*kinh|tk)\b/g, 'than kinh')
     .replace(/\b(?:dm|dong mach)\b/g, 'dong mach')
     .replace(/\b(?:tm|tinh mach)\b/g, 'tinh mach')
@@ -2898,9 +2984,9 @@ function findAnatomySearchResults(query) {
 
   const scored = [];
   pool.forEach(item => {
-    const vi = stripVietnamese(item.viName);
-    const en = stripVietnamese(item.enName);
-    const lat = stripVietnamese(item.latinName);
+    const vi = stripVietnamese(item.viName).replace(/[-_–—/]/g, ' ');
+    const en = stripVietnamese(item.enName).replace(/[-_–—/]/g, ' ');
+    const lat = stripVietnamese(item.latinName).replace(/[-_–—/]/g, ' ');
     const combined = `${vi} ${en} ${lat}`;
 
     let matches = tokens.every(t => combined.includes(t));
