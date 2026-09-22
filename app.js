@@ -13,106 +13,111 @@ let mouse = new THREE.Vector2();
 let isAutoRotating = false;
 let globalDissectionLevel = 1;
 
-// 12 Anatomical Systems Configuration (Complete Anatomy Specification)
+// 15 Anatomical Systems Configuration (BodyParts3D 4.0 MRI/CT Standard Specification)
 const SYSTEMS_CONFIG = {
   skeletal: {
     name: 'Skeletal',
     viName: 'Hệ Xương',
-    file: 'models/skeleton.glb',
     active: true,
     statusText: 'Bật'
   },
   connective: {
     name: 'Connective T.',
-    viName: 'Mô Liên Kết & Dây Chằng',
-    file: 'models/joints.glb',
+    viName: 'Khớp & Dây Chằng',
     active: false,
     statusText: 'Tắt'
   },
   muscular: {
     name: 'Muscular',
     viName: 'Hệ Cơ Bắp',
-    file: 'models/muscles.glb',
     active: false,
-    layer: 0, // 0 = Off, 1..8 = Layers
+    layer: 8,
     statusText: 'Tắt'
   },
   arterial: {
     name: 'Arterial',
     viName: 'Hệ Động Mạch',
-    file: 'models/cardio.glb',
     active: false,
-    layer: 0, // 0 = Off, 1 = Tim & Thân trung tâm, 2 = ĐM Vùng & Chi, 3 = Toàn bộ & Nhánh nông
+    layer: 2,
     statusText: 'Tắt'
   },
   venous: {
     name: 'Venous',
     viName: 'Hệ Tĩnh Mạch',
-    file: 'models/cardio.glb',
     active: false,
-    layer: 0, // 0 = Off, 1 = TM Chủ & Trung tâm, 2 = TM Sâu, 3 = TM Nông & Toàn bộ
+    layer: 2,
     statusText: 'Tắt'
   },
-  lymphatic: {
-    name: 'Lymphatic',
-    viName: 'Hệ Bạch Huyết',
-    file: 'models/visceral.glb',
+  cardiac: {
+    name: 'Cardiac',
+    viName: 'Tim Mạch (Tim)',
     active: false,
     statusText: 'Tắt'
   },
   nervous: {
     name: 'Nervous',
     viName: 'Hệ Thần Kinh',
-    file: 'models/nervous.glb',
     active: false,
     statusText: 'Tắt'
   },
   respiratory: {
     name: 'Respiratory',
     viName: 'Hệ Hô Hấp',
-    file: 'models/visceral.glb',
     active: false,
     statusText: 'Tắt'
   },
   digestive: {
     name: 'Digestive',
     viName: 'Hệ Tiêu Hóa',
-    file: 'models/visceral.glb',
+    active: false,
+    statusText: 'Tắt'
+  },
+  urinary: {
+    name: 'Urinary',
+    viName: 'Hệ Tiết Niệu',
+    active: false,
+    statusText: 'Tắt'
+  },
+  reproductive: {
+    name: 'Reproductive',
+    viName: 'Hệ Sinh Dục',
+    active: false,
+    statusText: 'Tắt'
+  },
+  urogenital: {
+    name: 'Urogenital',
+    viName: 'Tiết Niệu & Sinh Dục',
     active: false,
     statusText: 'Tắt'
   },
   endocrine: {
     name: 'Endocrine',
     viName: 'Hệ Nội Tiết',
-    file: 'models/visceral.glb',
     active: false,
     statusText: 'Tắt'
   },
-  urogenital: {
-    name: 'Urogenital',
-    viName: 'Hệ Tiết Niệu & Sinh Dục',
-    file: 'models/visceral.glb',
+  lymphatic: {
+    name: 'Lymphatic',
+    viName: 'Hệ Bạch Huyết',
+    active: false,
+    statusText: 'Tắt'
+  },
+  sensory: {
+    name: 'Sensory',
+    viName: 'Giác Quan (Mắt & Tai)',
     active: false,
     statusText: 'Tắt'
   },
   integumentary: {
     name: 'Integumentary',
     viName: 'Hệ Da & Mạc Nông',
-    file: 'models/visceral.glb',
     active: false,
     statusText: 'Tắt'
   }
 };
 
-// Model files loader tracking
-const MODEL_FILES = {
-  'models/skeleton.glb': { loaded: false, loading: false },
-  'models/joints.glb': { loaded: false, loading: false },
-  'models/muscles.glb': { loaded: false, loading: false },
-  'models/cardio.glb': { loaded: false, loading: false },
-  'models/nervous.glb': { loaded: false, loading: false },
-  'models/visceral.glb': { loaded: false, loading: false }
-};
+// Model files loader tracking (Cached)
+const MODEL_FILES = {};
 
 // PHOTOREALISTIC COMPLETE ANATOMY COLOR PALETTE
 const PALETTE = {
@@ -297,58 +302,171 @@ async function loadAnatomyData() {
   }
 }
 
-// Staged Model Loading with Guaranteed Overlay Dismissal & Hub Launch
+// ========================================================
+// BODYPARTS3D 4.0 HIGH-PRECISION MRI/CT SCAN LOADER
+// Direct ArrayBuffer 16-bit Decoded Chunks
+// ========================================================
+let bodyParts3DAtlas = null;
+let bodyParts3DVi = null;
+
+const SYSTEM_MATERIALS_BP3D = {
+  skeletal: new THREE.MeshStandardMaterial({ color: 0xdece9a, roughness: 0.38, metalness: 0.02 }),
+  connective: new THREE.MeshStandardMaterial({ color: 0xd5d9dc, roughness: 0.32, metalness: 0.02 }),
+  muscular: new THREE.MeshStandardMaterial({ color: 0xa8483e, roughness: 0.45, metalness: 0.01 }),
+  arterial: new THREE.MeshStandardMaterial({ color: 0xd32f2f, roughness: 0.28, metalness: 0.04 }),
+  venous: new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.28, metalness: 0.04 }),
+  cardiac: new THREE.MeshStandardMaterial({ color: 0x9b1b1b, roughness: 0.30, metalness: 0.02 }),
+  nervous: new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.32, metalness: 0.03 }),
+  respiratory: new THREE.MeshStandardMaterial({ color: 0x67e8f9, roughness: 0.38, metalness: 0.01 }),
+  digestive: new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.35, metalness: 0.01 }),
+  urinary: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.32, metalness: 0.02 }),
+  reproductive: new THREE.MeshStandardMaterial({ color: 0xc084fc, roughness: 0.34, metalness: 0.02 }),
+  endocrine: new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.36, metalness: 0.01 }),
+  lymphatic: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.38, metalness: 0.02 }),
+  sensory: new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.30, metalness: 0.04 }),
+  integumentary: new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.50, transparent: true, opacity: 0.18 })
+};
+
 async function initAnatomyModels() {
   const overlay = document.getElementById('loading-overlay');
   const status = document.getElementById('loading-status');
   const fill = document.getElementById('loading-fill');
 
+  function updateProgress(percent, msg) {
+    if (fill) fill.style.width = percent + '%';
+    if (status) status.textContent = msg || `Đang nạp mô hình BodyParts3D: ${percent}%`;
+  }
+
   function dismissOverlay() {
     if (overlay && overlay.style.display !== 'none') {
-      fill.style.width = "100%";
+      if (fill) fill.style.width = '100%';
       overlay.style.opacity = '0';
       setTimeout(() => {
         overlay.style.display = 'none';
-        // Launch Startup Hub (Models & Atlas)
-        openHubOverlay();
       }, 350);
     }
   }
 
-  const safetyTimeout = setTimeout(() => {
-    console.warn("Safety timeout: revealing 3D scene.");
-    dismissOverlay();
-  }, 2500);
-
   try {
-    status.textContent = "Đang nạp mô hình giải phẫu 3D...";
-    fill.style.width = "50%";
-    await loadModelFile('models/skeleton.glb');
-  } catch (err) {
-    console.error("Initial skeleton load error:", err);
-  } finally {
-    clearTimeout(safetyTimeout);
-    dismissOverlay();
-  }
+    updateProgress(5, 'Đang đọc chỉ mục giải phẫu BodyParts3D 4.0...');
 
-  const queue = [
-    'models/nervous.glb',
-    'models/visceral.glb',
-    'models/joints.glb',
-    'models/muscles.glb',
-    'models/cardio.glb'
-  ];
+    const [atlasRes, viRes] = await Promise.all([
+      fetch('models/bodyparts3d/atlas.json'),
+      fetch('data/bodyparts3d_vi.json')
+    ]);
 
-  for (let file of queue) {
-    if (!MODEL_FILES[file].loaded && !MODEL_FILES[file].loading) {
-      try {
-        await loadModelFile(file);
-      } catch (e) {
-        console.warn(`Error background loading ${file}:`, e);
+    if (!atlasRes.ok) throw new Error('Không thể tải file atlas.json');
+    bodyParts3DAtlas = await atlasRes.json();
+    bodyParts3DVi = viRes.ok ? await viRes.json() : null;
+
+    updateProgress(15, 'Đang giải mã và dựng mô hình giải phẫu...');
+
+    const parts = bodyParts3DAtlas.parts || [];
+    const chunks = bodyParts3DAtlas.chunks || [];
+    const totalChunks = chunks.length;
+    let chunksLoaded = 0;
+
+    const concurrency = 3;
+    let chunkCursor = 0;
+
+    async function loadChunkWorker() {
+      while (chunkCursor < totalChunks) {
+        const ci = chunkCursor++;
+        const chunkUrl = `models/bodyparts3d/body-${ci}.bin`;
+        try {
+          const res = await fetch(chunkUrl);
+          if (!res.ok) throw new Error(`Lỗi tải khối ${chunkUrl}`);
+          const buffer = await res.arrayBuffer();
+
+          const chunkParts = parts.filter(p => p.chunk === ci);
+          for (let p of chunkParts) {
+            const g = new THREE.BufferGeometry();
+            g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
+            g.setAttribute('normal', new THREE.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
+            g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
+
+            if (p.bounds) {
+              g.boundingBox = new THREE.Box3(
+                new THREE.Vector3().fromArray(p.bounds[0]),
+                new THREE.Vector3().fromArray(p.bounds[1])
+              );
+              g.computeBoundingSphere();
+            }
+
+            let mat = SYSTEM_MATERIALS_BP3D[p.system] || SYSTEM_MATERIALS_BP3D.skeletal;
+            if (p.system === 'integumentary') {
+              mat = mat.clone();
+              mat.transparent = true;
+              mat.opacity = 0.18;
+            } else {
+              mat = mat.clone();
+            }
+
+            const mesh = new THREE.Mesh(g, mat);
+            mesh.name = p.name;
+            mesh.frustumCulled = true;
+
+            const viEntry = bodyParts3DVi?.parts?.[p.id] || {};
+            const viName = viEntry.vi || p.name;
+            const latinName = viEntry.latin || '';
+            const sysVi = SYSTEMS_CONFIG[p.system]?.viName || p.system;
+            const desc = viEntry.desc || `Cấu trúc thuộc ${sysVi}. Mã định danh FMA: ${p.conceptId}. Nguồn ảnh quét y khoa chuẩn BodyParts3D 4.0 (CC BY 4.0 - DBCLS).`;
+
+            mesh.userData = {
+              id: p.id,
+              conceptId: p.conceptId,
+              cleanName: p.name,
+              rawName: p.name,
+              enName: p.name,
+              viName: viName,
+              latinName: latinName,
+              system: p.system,
+              desc: desc,
+              originalColor: mesh.material.color.getHex(),
+              originalMaterial: mesh.material,
+              bounds: p.bounds,
+              center: p.bounds ? [
+                (p.bounds[0][0] + p.bounds[1][0]) / 2,
+                (p.bounds[0][1] + p.bounds[1][1]) / 2,
+                (p.bounds[0][2] + p.bounds[1][2]) / 2
+              ] : [0, 0.865, 0]
+            };
+
+            scene.add(mesh);
+            allMeshes.push(mesh);
+          }
+
+          chunksLoaded++;
+          const pct = Math.round(15 + (chunksLoaded / totalChunks) * 80);
+          updateProgress(pct, `Đang nạp dữ liệu giải phẫu: ${chunksLoaded}/${totalChunks} khối (${pct}%)...`);
+        } catch (err) {
+          console.error(`Lỗi nạp khối ${ci}:`, err);
+        }
       }
     }
+
+    const workers = [];
+    for (let w = 0; w < concurrency; w++) {
+      workers.push(loadChunkWorker());
+    }
+    await Promise.all(workers);
+
+    updateProgress(100, 'Hoàn tất khởi tạo mô hình giải phẫu BodyParts3D!');
+    console.log(`Đã nạp thành công ${allMeshes.length} meshes BodyParts3D vào không gian 3D!`);
+    window.allMeshes = allMeshes;
+
+    applyAllSystemsVisibility();
+    updateBottomBarUI();
+
+    if (controls) {
+      controls.target.set(0, 0.865, 0);
+    }
+  } catch (err) {
+    console.error('Lỗi khởi tạo BodyParts3D:', err);
+    if (status) status.textContent = 'Lỗi nạp mô hình giải phẫu: ' + err.message;
+  } finally {
+    setTimeout(dismissOverlay, 350);
   }
-  console.log("All anatomical models loaded and cached!");
 }
 
 // ========================================================
@@ -884,54 +1002,7 @@ function getCeliacStructureInfo(meshName, landmarkId) {
 }
 
 function loadModelFile(file) {
-  return new Promise((resolve) => {
-    if (MODEL_FILES[file].loaded) {
-      resolve();
-      return;
-    }
-    MODEL_FILES[file].loading = true;
-
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-      file,
-      (gltf) => {
-        try {
-          const root = gltf.scene;
-
-          const meshes = [];
-          root.traverse((child) => {
-            if (child.isMesh) {
-              meshes.push(child);
-            }
-          });
-
-          for (let mesh of meshes) {
-            setupMesh(mesh, file);
-            allMeshes.push(mesh);
-          }
-
-          scene.add(root);
-
-          MODEL_FILES[file].loaded = true;
-          MODEL_FILES[file].loading = false;
-
-          applyAllSystemsVisibility();
-        } catch (procErr) {
-          console.error(`Error processing scene for ${file}:`, procErr);
-          MODEL_FILES[file].loaded = true;
-          MODEL_FILES[file].loading = false;
-        }
-        resolve();
-      },
-      undefined,
-      (err) => {
-        console.error(`Network or parse error loading ${file}:`, err);
-        MODEL_FILES[file].loaded = false;
-        MODEL_FILES[file].loading = false;
-        resolve();
-      }
-    );
-  });
+  return Promise.resolve();
 }
 
 // Classify Meshes into 12 Systems, Layers, and Medical Materials with Strict Medical Accuracy
@@ -2129,12 +2200,16 @@ function openInspector(mesh, relations = null) {
     muscular: '#f43f5e',
     arterial: '#ef4444',
     venous: '#3b82f6',
-    lymphatic: '#10b981',
+    cardiac: '#dc2626',
     nervous: '#f59e0b',
     respiratory: '#06b6d4',
     digestive: '#f97316',
-    endocrine: '#8b5cf6',
+    urinary: '#eab308',
+    reproductive: '#a855f7',
     urogenital: '#a855f7',
+    endocrine: '#8b5cf6',
+    lymphatic: '#10b981',
+    sensory: '#06b6d4',
     integumentary: '#ec4899'
   };
   const color = sysColors[u.system] || '#00d2ff';
@@ -2144,8 +2219,8 @@ function openInspector(mesh, relations = null) {
   systemTag.style.backgroundColor = `${color}18`;
   systemTag.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${sys ? sys.viName : "Giải Phẫu"}`;
 
-  let desc = "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).";
-  const lowCleanName = u.cleanName.toLowerCase().trim();
+  let desc = u.desc || "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).";
+  const lowCleanName = (u.cleanName || '').toLowerCase().trim();
   // 1. Exact match in clinical
   for (let k in anatomyData.clinical) {
     if (lowCleanName === k.toLowerCase().trim()) {
@@ -2154,7 +2229,7 @@ function openInspector(mesh, relations = null) {
     }
   }
   // 2. Word boundary match
-  if (desc === "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).") {
+  if (!u.desc || desc === "Cấu trúc giải phẫu người theo chuẩn quốc tế Terminologia Anatomica (TA2).") {
     for (let k in anatomyData.clinical) {
       const reg = new RegExp(`\\b${k.trim()}\\b`, 'i');
       if (reg.test(lowCleanName)) {
@@ -2234,21 +2309,29 @@ function focusSelected() {
   smoothMoveCamera(newPos, center);
 }
 
-// Complete Anatomy 12 Systems Bottom Bar Interactions
+// BodyParts3D 15 Systems Bottom Bar Interactions
 function toggleSystem(sysKey) {
   const sys = SYSTEMS_CONFIG[sysKey];
   if (!sys) return;
 
   sys.active = !sys.active;
-  sys.statusText = sys.active ? (sysKey === 'skeletal' ? 'Bật' : 'Bật') : 'Tắt';
+  sys.statusText = sys.active ? 'Bật' : 'Tắt';
+
+  // Support composite urogenital toggle
+  if (sysKey === 'urogenital') {
+    if (SYSTEMS_CONFIG.urinary) {
+      SYSTEMS_CONFIG.urinary.active = sys.active;
+      SYSTEMS_CONFIG.urinary.statusText = sys.statusText;
+    }
+    if (SYSTEMS_CONFIG.reproductive) {
+      SYSTEMS_CONFIG.reproductive.active = sys.active;
+      SYSTEMS_CONFIG.reproductive.statusText = sys.statusText;
+    }
+  }
 
   updateBottomBarUI();
   updatePanelSteppersUI();
   applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
 }
 
 // Muscular System: Toggle & Stepper (0..8)
@@ -2256,120 +2339,68 @@ function toggleMuscularSystem() {
   const sys = SYSTEMS_CONFIG.muscular;
   if (sys.active) {
     sys.active = false;
-    sys.layer = 0;
     sys.statusText = 'Tắt';
   } else {
     sys.active = true;
-    sys.layer = 8;
-    sys.statusText = 'Lớp 8';
+    sys.statusText = 'Bật';
   }
 
   updateBottomBarUI();
   updatePanelSteppersUI();
   applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
 }
 
 function stepMuscularLayer(delta) {
   const sys = SYSTEMS_CONFIG.muscular;
-  let newLayer = (sys.layer || 0) + delta;
-  newLayer = Math.max(0, Math.min(8, newLayer));
-
-  sys.layer = newLayer;
-  sys.active = newLayer > 0;
-  sys.statusText = newLayer > 0 ? `Lớp ${newLayer}` : 'Tắt';
+  sys.active = !sys.active;
+  sys.statusText = sys.active ? 'Bật' : 'Tắt';
 
   updateBottomBarUI();
   updatePanelSteppersUI();
   applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
 }
 
-// Arterial System: Toggle & Stepper (0..5 Complete Anatomy Spec)
+// Arterial System: Toggle & Stepper
 function toggleArterialSystem() {
   const sys = SYSTEMS_CONFIG.arterial;
   if (sys.active) {
     sys.active = false;
-    sys.layer = 0;
     sys.statusText = 'Tắt';
   } else {
     sys.active = true;
-    sys.layer = 2; // Default to Layer 2 like in Complete Anatomy
-    sys.statusText = 'Lớp 2';
+    sys.statusText = 'Bật';
+    if (SYSTEMS_CONFIG.cardiac) SYSTEMS_CONFIG.cardiac.active = true;
   }
 
   updateBottomBarUI();
   updatePanelSteppersUI();
   applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
 }
 
 function stepArterialLayer(delta) {
-  const sys = SYSTEMS_CONFIG.arterial;
-  let newLayer = (sys.layer || 0) + delta;
-  newLayer = Math.max(0, Math.min(5, newLayer));
-
-  sys.layer = newLayer;
-  sys.active = newLayer > 0;
-  sys.statusText = newLayer > 0 ? `Lớp ${newLayer}` : 'Tắt';
-
-  updateBottomBarUI();
-  updatePanelSteppersUI();
-  applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
+  toggleArterialSystem();
 }
 
-// Venous System: Toggle & Stepper (0..5 Complete Anatomy Spec)
+// Venous System: Toggle & Stepper
 function toggleVenousSystem() {
   const sys = SYSTEMS_CONFIG.venous;
   if (sys.active) {
     sys.active = false;
-    sys.layer = 0;
     sys.statusText = 'Tắt';
   } else {
     sys.active = true;
-    sys.layer = 2; // Default to Layer 2 like in Complete Anatomy
-    sys.statusText = 'Lớp 2';
+    sys.statusText = 'Bật';
   }
 
   updateBottomBarUI();
   updatePanelSteppersUI();
   applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
 }
 
 function stepVenousLayer(delta) {
-  const sys = SYSTEMS_CONFIG.venous;
-  let newLayer = (sys.layer || 0) + delta;
-  newLayer = Math.max(0, Math.min(5, newLayer));
-
-  sys.layer = newLayer;
-  sys.active = newLayer > 0;
-  sys.statusText = newLayer > 0 ? `Lớp ${newLayer}` : 'Tắt';
-
-  updateBottomBarUI();
-  updatePanelSteppersUI();
-  applyAllSystemsVisibility();
-
-  if (sys.active && !MODEL_FILES[sys.file].loaded && !MODEL_FILES[sys.file].loading) {
-    loadModelFile(sys.file);
-  }
+  toggleVenousSystem();
 }
+
 
 // ========================================================
 // GLOBAL DISSECTION LAYER SLIDER & PANEL (1 to 6)
@@ -2623,19 +2654,15 @@ function applyAllSystemsVisibility() {
       continue;
     }
     const sysKey = mesh.userData.system;
-    const sys = SYSTEMS_CONFIG[sysKey];
-    
-    if (!sys || !sys.active) {
-      mesh.visible = false;
-    } else if (sysKey === 'muscular') {
-      mesh.visible = mesh.userData.muscleLayer <= sys.layer;
-    } else if (sysKey === 'arterial') {
-      mesh.visible = (mesh.userData.vesselLayer || 1) <= sys.layer;
-    } else if (sysKey === 'venous') {
-      mesh.visible = (mesh.userData.vesselLayer || 1) <= sys.layer;
-    } else {
-      mesh.visible = true;
+    let isActive = false;
+    if (sysKey === 'urinary' || sysKey === 'reproductive') {
+      isActive = (SYSTEMS_CONFIG[sysKey] && SYSTEMS_CONFIG[sysKey].active) || (SYSTEMS_CONFIG.urogenital && SYSTEMS_CONFIG.urogenital.active);
+    } else if (sysKey === 'cardiac') {
+      isActive = (SYSTEMS_CONFIG.cardiac && SYSTEMS_CONFIG.cardiac.active) || (SYSTEMS_CONFIG.arterial && SYSTEMS_CONFIG.arterial.active);
+    } else if (SYSTEMS_CONFIG[sysKey]) {
+      isActive = SYSTEMS_CONFIG[sysKey].active;
     }
+    mesh.visible = !!isActive;
   }
 }
 
