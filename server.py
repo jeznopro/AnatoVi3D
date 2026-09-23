@@ -7,12 +7,21 @@ PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = http.server.SimpleHTTPRequestHandler.extensions_map.copy()
+    extensions_map.update({
+        '.bp3d': 'application/octet-stream',
+        '.bin': 'application/octet-stream',
+        '.glb': 'model/gltf-binary',
+        '.gltf': 'model/gltf+json',
+    })
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Content-Disposition', 'inline')
         super().end_headers()
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):

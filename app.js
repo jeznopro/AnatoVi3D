@@ -385,7 +385,7 @@ async function initAnatomyModels() {
     const failedChunks = [];
 
     async function processChunk(ci) {
-      const chunkUrl = `models/bodyparts3d/body-${ci}.bin`;
+      const chunkUrl = `models/bodyparts3d/body-${ci}.bp3d`;
       try {
         const buffer = await fetchBufferWithRetry(chunkUrl, 3);
         const chunkParts = parts.filter(p => p.chunk === ci);
