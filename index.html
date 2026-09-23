@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <title>AnatoVi 3D - Human Anatomy Atlas (BodyParts3D 4.0 - Chuẩn Quét MRI/CT)</title>
+  <meta http-equiv="Expires" content="0">
+  <title>AnatoVi 3D - Giải Phẫu Học 3D Chuyên Nghiệp</title>
   
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -616,7 +617,7 @@
     }
 
     /* ======================================================== */
-    /* FLOATING BOTTOM 15 SYSTEMS DOCK (BodyParts3D 4.0)        */
+    /* FLOATING BOTTOM 12 SYSTEMS DOCK                          */
     /* ======================================================== */
     .ca-bottom-bar {
       position: absolute;
@@ -624,8 +625,8 @@
       left: 50%;
       transform: translateX(-50%);
       width: calc(100% - 28px);
-      max-width: 1560px;
-      height: 72px;
+      max-width: 1400px;
+      height: 70px;
       background: var(--bottom-bar-bg);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -633,17 +634,11 @@
       border-radius: 18px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 2px;
-      padding: 0 12px;
+      justify-content: space-around;
+      padding: 0 10px;
       z-index: 20;
       box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .ca-bottom-bar::-webkit-scrollbar {
-      display: none;
+      overflow: visible;
     }
 
     .ca-item {
@@ -653,11 +648,10 @@
       justify-content: center;
       cursor: pointer;
       position: relative;
-      padding: 6px 6px;
+      padding: 6px 8px;
       border-radius: 10px;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      min-width: 68px;
-      flex-shrink: 0;
+      min-width: 72px;
     }
 
     .ca-item:hover {
@@ -2585,7 +2579,7 @@
   <!-- Loading Screen -->
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <div class="loading-text" id="loading-status">Đang nạp mô hình giải phẫu BodyParts3D 4.0...</div>
+    <div class="loading-text" id="loading-status">Đang nạp mô hình giải phẫu 3D...</div>
     <div class="loading-progress-bar">
       <div class="loading-progress-fill" id="loading-fill"></div>
     </div>
@@ -2611,9 +2605,9 @@
           </div>
           <div class="hub-card-body">
             <div class="hub-card-header">
-              <div class="hub-card-title">Mô Hình (BodyParts3D)</div>
+              <div class="hub-card-title">Mô Hình (Models)</div>
             </div>
-            <p class="hub-card-desc">Khám phá 2.234 chi tiết giải phẫu chuẩn y khoa quét từ MRI/CT scan người thật thuộc 15 hệ cơ quan.</p>
+            <p class="hub-card-desc">Khám phá toàn bộ cơ thể người 3D thời gian thực với đầy đủ 12 hệ cơ quan, bóc tách 8 tầng cơ bắp và 5 tầng mạch máu.</p>
             <button class="hub-card-btn primary"><i class="fa-solid fa-arrow-right"></i> Mở Mô Hình 3D</button>
           </div>
         </div>
@@ -2653,7 +2647,6 @@
       <div class="brand-name-wrap">
         <span class="brand-name">AnatoVi 3D</span>
         <span class="brand-pro-badge">PRO</span>
-        <span class="brand-pro-badge" style="background: rgba(16, 185, 129, 0.16); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); margin-left: 6px; font-size: 0.62rem; padding: 2px 7px;" title="Bộ dữ liệu giải phẫu chuẩn y khoa BodyParts3D 4.0 (CC BY 4.0 - DBCLS Nhật Bản)">BP3D 4.0 (MRI/CT)</span>
       </div>
     </div>
 
@@ -3217,7 +3210,7 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- FLOATING BOTTOM 15 SYSTEMS DOCK (BodyParts3D 4.0)        -->
+  <!-- FLOATING BOTTOM 12 SYSTEMS DOCK                          -->
   <!-- ======================================================== -->
   <footer class="ca-bottom-bar">
     
@@ -3230,17 +3223,22 @@
       <div class="ca-label">Hệ Xương</div>
     </div>
 
-    <!-- 2. Connective -->
+    <!-- 2. Connective T. -->
     <div class="ca-item" id="btn-sys-connective" onclick="toggleSystem('connective')">
       <div class="ca-status" id="status-connective">Tắt</div>
       <div class="ca-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M8 8.5h8l1.5 5h-1.8l-.7-3.5h-1.5v9h-2v-5h-3v5H7v-9H5.5L4.8 13.5H3z"/><circle cx="6" cy="9.5" r="1.2"/><circle cx="18" cy="9.5" r="1.2"/><circle cx="8" cy="18" r="1.2"/><circle cx="16" cy="18" r="1.2"/></svg>
       </div>
-      <div class="ca-label">Dây Chằng</div>
+      <div class="ca-label">Khớp & Dây Chằng</div>
     </div>
 
-    <!-- 3. Muscular -->
+    <!-- 3. Muscular (With Floating Stepper Widget) -->
     <div class="ca-item" id="btn-sys-muscular" onclick="toggleMuscularSystem()">
+      <div class="ca-stepper-pill" id="muscular-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepMuscularLayer(1)" title="Tăng thêm lớp cơ (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepMuscularLayer(-1)" title="Bóc tách bớt lớp cơ (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
       <div class="ca-status" id="status-muscular">Tắt</div>
       <div class="ca-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 7.5c1.5-.5 3.5-.8 5-.8s3.5.3 5 .8l1 4.5h-2l-.5-3c-1-.2-2-.3-3.5-.3s-2.5.1-3.5.3l-.5 3H6z"/><path d="M8.5 12h7v1.8h-7zm0 2.6h7v1.8h-7zm0 2.6h7v1.8h-7zm3.5-5.2v7"/></svg>
@@ -3248,8 +3246,13 @@
       <div class="ca-label">Hệ Cơ Bắp</div>
     </div>
 
-    <!-- 4. Arterial -->
+    <!-- 4. Arterial (With Floating Stepper Widget) -->
     <div class="ca-item" id="btn-sys-arterial" onclick="toggleArterialSystem()">
+      <div class="ca-stepper-pill" id="arterial-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepArterialLayer(1)" title="Tăng lớp động mạch (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepArterialLayer(-1)" title="Giảm lớp động mạch (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
       <div class="ca-status" id="status-arterial">Tắt</div>
       <div class="ca-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><path d="M12 7.5v12.5"/><path d="M10 11.5c-1 0-1.8.8-1.8 1.8 0 1.5 1.8 3.2 3.8 4.7 2-1.5 3.8-3.2 3.8-4.7 0-1-.8-1.8-1.8-1.8-.8 0-1.5.5-2 1.2-.5-.7-1.2-1.2-2-1.2z"/></svg>
@@ -3257,8 +3260,13 @@
       <div class="ca-label">Động Mạch</div>
     </div>
 
-    <!-- 5. Venous -->
+    <!-- 5. Venous (With Floating Stepper Widget) -->
     <div class="ca-item" id="btn-sys-venous" onclick="toggleVenousSystem()">
+      <div class="ca-stepper-pill" id="venous-stepper" onclick="event.stopPropagation();">
+        <button class="ca-stepper-btn" onclick="stepVenousLayer(1)" title="Tăng lớp tĩnh mạch (+)"><i class="fa-solid fa-plus"></i></button>
+        <div class="ca-stepper-divider"></div>
+        <button class="ca-stepper-btn" onclick="stepVenousLayer(-1)" title="Giảm lớp tĩnh mạch (-)"><i class="fa-solid fa-minus"></i></button>
+      </div>
       <div class="ca-status" id="status-venous">Tắt</div>
       <div class="ca-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><path d="M12 7v13"/><path d="M9.5 12l2.5-2.5 2.5 2.5"/><path d="M9.5 16l2.5-2.5 2.5 2.5"/></svg>
@@ -3266,13 +3274,13 @@
       <div class="ca-label">Tĩnh Mạch</div>
     </div>
 
-    <!-- 6. Cardiac -->
-    <div class="ca-item" id="btn-sys-cardiac" onclick="toggleSystem('cardiac')">
-      <div class="ca-status" id="status-cardiac">Tắt</div>
+    <!-- 6. Lymphatic -->
+    <div class="ca-item" id="btn-sys-lymphatic" onclick="toggleSystem('lymphatic')">
+      <div class="ca-status" id="status-lymphatic">Tắt</div>
       <div class="ca-icon-wrap">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><circle cx="12" cy="11" r="1.2"/><circle cx="10" cy="15" r="1.2"/><circle cx="14" cy="15" r="1.2"/><circle cx="12" cy="18" r="1.2"/><path d="M12 8v10M10 15l2-4 2 4"/></svg>
       </div>
-      <div class="ca-label">Tim Mạch</div>
+      <div class="ca-label">Bạch Huyết</div>
     </div>
 
     <!-- 7. Nervous -->
@@ -3302,25 +3310,7 @@
       <div class="ca-label">Tiêu Hóa</div>
     </div>
 
-    <!-- 10. Urinary -->
-    <div class="ca-item" id="btn-sys-urinary" onclick="toggleSystem('urinary')">
-      <div class="ca-status" id="status-urinary">Tắt</div>
-      <div class="ca-icon-wrap">
-        <svg viewBox="0 0 24 24"><path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 1.9 1 3.5 2.5 4.3v5.4c-1.5.8-2.5 2.4-2.5 4.3 0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.9-1-3.5-2.5-4.3v-5.4c1.5-.8 2.5-2.4 2.5-4.3C16.5 4 14.5 2 12 2z"/></svg>
-      </div>
-      <div class="ca-label">Tiết Niệu</div>
-    </div>
-
-    <!-- 11. Reproductive -->
-    <div class="ca-item" id="btn-sys-reproductive" onclick="toggleSystem('reproductive')">
-      <div class="ca-status" id="status-reproductive">Tắt</div>
-      <div class="ca-icon-wrap">
-        <svg viewBox="0 0 24 24"><circle cx="10" cy="14" r="5"/><path d="M13.5 10.5L19 5m0 0h-4m4 0v4"/></svg>
-      </div>
-      <div class="ca-label">Sinh Dục</div>
-    </div>
-
-    <!-- 12. Endocrine -->
+    <!-- 10. Endocrine -->
     <div class="ca-item" id="btn-sys-endocrine" onclick="toggleSystem('endocrine')">
       <div class="ca-status" id="status-endocrine">Tắt</div>
       <div class="ca-icon-wrap">
@@ -3329,25 +3319,16 @@
       <div class="ca-label">Nội Tiết</div>
     </div>
 
-    <!-- 13. Lymphatic -->
-    <div class="ca-item" id="btn-sys-lymphatic" onclick="toggleSystem('lymphatic')">
-      <div class="ca-status" id="status-lymphatic">Tắt</div>
+    <!-- 11. Urogenital -->
+    <div class="ca-item" id="btn-sys-urogenital" onclick="toggleSystem('urogenital')">
+      <div class="ca-status" id="status-urogenital">Tắt</div>
       <div class="ca-icon-wrap">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M7 8h10l1 5h-2.2l-.5-3H8.7l-.5 3H6z"/><circle cx="12" cy="11" r="1.2"/><circle cx="10" cy="15" r="1.2"/><circle cx="14" cy="15" r="1.2"/><circle cx="12" cy="18" r="1.2"/><path d="M12 8v10M10 15l2-4 2 4"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="3.5" r="1.8"/><path d="M9 11.5c-1 0-1.5.8-1.5 1.8s.5 1.8 1.5 1.8c.8 0 1-.5 1-1.8s-.2-1.8-1-1.8zm6 0c-.8 0-1 .5-1 1.8s.2 1.8 1 1.8c1 0 1.5-.8 1.5-1.8s-.5-1.8-1.5-1.8z"/><path d="M10 14.5l1.5 3.5h1l1.5-3.5"/><path d="M10.5 18c0 1.2.7 2 1.5 2s1.5-.8 1.5-2h-3z"/></svg>
       </div>
-      <div class="ca-label">Bạch Huyết</div>
+      <div class="ca-label">Tiết Niệu</div>
     </div>
 
-    <!-- 14. Sensory -->
-    <div class="ca-item" id="btn-sys-sensory" onclick="toggleSystem('sensory')">
-      <div class="ca-status" id="status-sensory">Tắt</div>
-      <div class="ca-icon-wrap">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
-      </div>
-      <div class="ca-label">Giác Quan</div>
-    </div>
-
-    <!-- 15. Integumentary -->
+    <!-- 12. Integumentary -->
     <div class="ca-item" id="btn-sys-integumentary" onclick="toggleSystem('integumentary')">
       <div class="ca-status" id="status-integumentary">Tắt</div>
       <div class="ca-icon-wrap">
@@ -3364,6 +3345,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260923_bp3d_v2"></script>
+  <script src="app.js?v=20260923_zanatomy_v1"></script>
 </body>
 </html>
