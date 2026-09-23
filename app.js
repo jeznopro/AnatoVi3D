@@ -369,79 +369,96 @@ async function initAnatomyModels() {
     const concurrency = 3;
     let chunkCursor = 0;
 
+    async function fetchBufferWithRetry(url, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          return await res.arrayBuffer();
+        } catch (err) {
+          if (attempt === maxRetries) throw err;
+          await new Promise(r => setTimeout(r, attempt * 400));
+        }
+      }
+    }
+
+    const failedChunks = [];
+
+    async function processChunk(ci) {
+      const chunkUrl = `models/bodyparts3d/body-${ci}.bin`;
+      try {
+        const buffer = await fetchBufferWithRetry(chunkUrl, 3);
+        const chunkParts = parts.filter(p => p.chunk === ci);
+        for (let p of chunkParts) {
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
+          g.setAttribute('normal', new THREE.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
+          g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
+
+          if (p.bounds) {
+            g.boundingBox = new THREE.Box3(
+              new THREE.Vector3().fromArray(p.bounds[0]),
+              new THREE.Vector3().fromArray(p.bounds[1])
+            );
+            g.computeBoundingSphere();
+          }
+
+          let mat = SYSTEM_MATERIALS_BP3D[p.system] || SYSTEM_MATERIALS_BP3D.skeletal;
+          if (p.system === 'integumentary') {
+            mat = mat.clone();
+            mat.transparent = true;
+            mat.opacity = 0.18;
+          } else {
+            mat = mat.clone();
+          }
+
+          const mesh = new THREE.Mesh(g, mat);
+          mesh.name = p.name;
+          mesh.frustumCulled = true;
+
+          const viEntry = bodyParts3DVi?.parts?.[p.id] || {};
+          const viName = viEntry.vi || p.name;
+          const latinName = viEntry.latin || '';
+          const sysVi = SYSTEMS_CONFIG[p.system]?.viName || p.system;
+          const desc = viEntry.desc || `Cấu trúc thuộc ${sysVi}. Mã định danh FMA: ${p.conceptId}. Nguồn ảnh quét y khoa chuẩn BodyParts3D 4.0 (CC BY 4.0 - DBCLS).`;
+
+          mesh.userData = {
+            id: p.id,
+            conceptId: p.conceptId,
+            cleanName: p.name,
+            rawName: p.name,
+            enName: p.name,
+            viName: viName,
+            latinName: latinName,
+            system: p.system,
+            desc: desc,
+            originalColor: mesh.material.color.getHex(),
+            originalMaterial: mesh.material,
+            bounds: p.bounds,
+            center: p.bounds ? [
+              (p.bounds[0][0] + p.bounds[1][0]) / 2,
+              (p.bounds[0][1] + p.bounds[1][1]) / 2,
+              (p.bounds[0][2] + p.bounds[1][2]) / 2
+            ] : [0, 0.865, 0]
+          };
+
+          scene.add(mesh);
+          allMeshes.push(mesh);
+        }
+
+        chunksLoaded++;
+        const pct = Math.round(15 + (chunksLoaded / totalChunks) * 80);
+        updateProgress(pct, `Đang nạp dữ liệu giải phẫu: ${chunksLoaded}/${totalChunks} khối (${pct}%)...`);
+      } catch (err) {
+        console.error(`Lỗi nạp khối ${ci}:`, err);
+        failedChunks.push(ci);
+      }
+    }
+
     async function loadChunkWorker() {
       while (chunkCursor < totalChunks) {
         const ci = chunkCursor++;
-        const chunkUrl = `models/bodyparts3d/body-${ci}.bin`;
-        try {
-          const res = await fetch(chunkUrl);
-          if (!res.ok) throw new Error(`Lỗi tải khối ${chunkUrl}`);
-          const buffer = await res.arrayBuffer();
-
-          const chunkParts = parts.filter(p => p.chunk === ci);
-          for (let p of chunkParts) {
-            const g = new THREE.BufferGeometry();
-            g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
-            g.setAttribute('normal', new THREE.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
-            g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
-
-            if (p.bounds) {
-              g.boundingBox = new THREE.Box3(
-                new THREE.Vector3().fromArray(p.bounds[0]),
-                new THREE.Vector3().fromArray(p.bounds[1])
-              );
-              g.computeBoundingSphere();
-            }
-
-            let mat = SYSTEM_MATERIALS_BP3D[p.system] || SYSTEM_MATERIALS_BP3D.skeletal;
-            if (p.system === 'integumentary') {
-              mat = mat.clone();
-              mat.transparent = true;
-              mat.opacity = 0.18;
-            } else {
-              mat = mat.clone();
-            }
-
-            const mesh = new THREE.Mesh(g, mat);
-            mesh.name = p.name;
-            mesh.frustumCulled = true;
-
-            const viEntry = bodyParts3DVi?.parts?.[p.id] || {};
-            const viName = viEntry.vi || p.name;
-            const latinName = viEntry.latin || '';
-            const sysVi = SYSTEMS_CONFIG[p.system]?.viName || p.system;
-            const desc = viEntry.desc || `Cấu trúc thuộc ${sysVi}. Mã định danh FMA: ${p.conceptId}. Nguồn ảnh quét y khoa chuẩn BodyParts3D 4.0 (CC BY 4.0 - DBCLS).`;
-
-            mesh.userData = {
-              id: p.id,
-              conceptId: p.conceptId,
-              cleanName: p.name,
-              rawName: p.name,
-              enName: p.name,
-              viName: viName,
-              latinName: latinName,
-              system: p.system,
-              desc: desc,
-              originalColor: mesh.material.color.getHex(),
-              originalMaterial: mesh.material,
-              bounds: p.bounds,
-              center: p.bounds ? [
-                (p.bounds[0][0] + p.bounds[1][0]) / 2,
-                (p.bounds[0][1] + p.bounds[1][1]) / 2,
-                (p.bounds[0][2] + p.bounds[1][2]) / 2
-              ] : [0, 0.865, 0]
-            };
-
-            scene.add(mesh);
-            allMeshes.push(mesh);
-          }
-
-          chunksLoaded++;
-          const pct = Math.round(15 + (chunksLoaded / totalChunks) * 80);
-          updateProgress(pct, `Đang nạp dữ liệu giải phẫu: ${chunksLoaded}/${totalChunks} khối (${pct}%)...`);
-        } catch (err) {
-          console.error(`Lỗi nạp khối ${ci}:`, err);
-        }
+        await processChunk(ci);
       }
     }
 
@@ -450,6 +467,23 @@ async function initAnatomyModels() {
       workers.push(loadChunkWorker());
     }
     await Promise.all(workers);
+
+    // Fallback retry for any chunk that failed during parallel loading
+    if (failedChunks.length > 0) {
+      console.warn(`Đang thử lại ${failedChunks.length} khối dữ liệu bị gián đoạn...`, failedChunks);
+      const toRetry = [...failedChunks];
+      failedChunks.length = 0;
+      for (let ci of toRetry) {
+        await processChunk(ci);
+      }
+    }
+
+    if (failedChunks.length > 0) {
+      console.error(`Không thể nạp hoàn chỉnh ${failedChunks.length} khối giải phẫu:`, failedChunks);
+      if (status) {
+        status.innerHTML = `⚠️ Một số phần mô hình bị gián đoạn kết nối tải (${failedChunks.length} khối). <button onclick="location.reload()" style="margin-left:8px;padding:3px 10px;background:#00d2ff;color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:700;">Tải lại trang</button>`;
+      }
+    }
 
     // ========================================================
     // LOAD HYBRID CERVICAL VASCULATURE & CRANIAL NERVES
