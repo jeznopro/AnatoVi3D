@@ -2572,6 +2572,444 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* ======================================================== */
+    /* INTERACTIVE 2D ATLAS VIEWER MODAL                        */
+    /* High-Resolution Anatomical Plate with Glowing Contours   */
+    /* ======================================================== */
+    #atlas-interactive-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 2500;
+      background: rgba(5, 8, 15, 0.97);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: atlasFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #atlas-interactive-viewer.hidden {
+      display: none !important;
+    }
+    @keyframes atlasFadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .atlas-2d-header {
+      height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 18, 30, 0.90);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    .atlas-2d-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .atlas-2d-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .atlas-2d-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(0, 210, 255, 0.15);
+      color: #00d2ff;
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+    .atlas-2d-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .atlas-2d-color-picker {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .atlas-color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--dot-color);
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 8px var(--dot-color);
+    }
+    .atlas-color-dot:hover {
+      transform: scale(1.18);
+    }
+    .atlas-color-dot.active {
+      border-color: #fff;
+      transform: scale(1.25);
+    }
+    .atlas-2d-btn {
+      padding: 7px 13px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .atlas-2d-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .atlas-2d-btn.primary {
+      background: linear-gradient(135deg, #00d2ff, #0077ff);
+      color: #000;
+      border: none;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+    }
+    .atlas-2d-btn.primary:hover {
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
+      transform: translateY(-1px);
+    }
+    .atlas-2d-btn.close {
+      background: rgba(255, 71, 87, 0.15);
+      color: #ff4757;
+      border-color: rgba(255, 71, 87, 0.3);
+    }
+    .atlas-2d-btn.close:hover {
+      background: #ff4757;
+      color: #fff;
+    }
+
+    .atlas-2d-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .atlas-2d-stage {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0f172a 0%, #060911 100%);
+      user-select: none;
+    }
+
+    .atlas-2d-viewport {
+      position: relative;
+      display: inline-block;
+      max-width: 95%;
+      max-height: 95%;
+      transition: transform 0.15s ease-out;
+      transform-origin: center center;
+    }
+
+    .atlas-2d-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: calc(100vh - 120px);
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 210, 255, 0.1);
+      pointer-events: none;
+    }
+
+    .atlas-2d-svg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: auto;
+    }
+
+    .plate-polygon {
+      fill: rgba(0, 210, 255, 0.02);
+      stroke: rgba(0, 210, 255, 0.22);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 2;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .plate-polygon:hover {
+      fill: rgba(0, 210, 255, 0.22);
+      stroke: var(--active-glow-color, #00d2ff);
+      stroke-width: 3.5;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 10px var(--active-glow-color, #00d2ff)) drop-shadow(0 0 20px rgba(0, 210, 255, 0.6));
+    }
+    .plate-polygon.active {
+      fill: rgba(0, 210, 255, 0.30);
+      stroke: var(--active-glow-color, #00d2ff);
+      stroke-width: 4.5;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 14px var(--active-glow-color, #00d2ff)) drop-shadow(0 0 28px rgba(0, 210, 255, 0.8));
+      animation: atlasGlowPulse 1.4s infinite alternate;
+    }
+    @keyframes atlasGlowPulse {
+      0% {
+        stroke-width: 4.0;
+        filter: drop-shadow(0 0 10px var(--active-glow-color, #00d2ff)) drop-shadow(0 0 18px rgba(0, 210, 255, 0.5));
+      }
+      100% {
+        stroke-width: 5.5;
+        filter: drop-shadow(0 0 18px var(--active-glow-color, #00d2ff)) drop-shadow(0 0 35px rgba(0, 210, 255, 0.95));
+      }
+    }
+
+    .atlas-draw-toolbar {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(250, 204, 21, 0.2);
+      border-radius: 30px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+      font-size: 0.8rem;
+      color: #fff;
+    }
+    .atlas-draw-toolbar.hidden { display: none; }
+    .draw-tip { color: #facc15; font-weight: 600; font-size: 0.78rem; }
+    .draw-points-badge { font-weight: 700; color: #fff; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; }
+
+    /* Right Sidebar */
+    .atlas-2d-sidebar {
+      width: 390px;
+      flex-shrink: 0;
+      background: rgba(12, 18, 30, 0.92);
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .atlas-sidebar-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .atlas-sidebar-search {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .atlas-sidebar-search i {
+      position: absolute;
+      left: 12px;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+    .atlas-sidebar-search input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px 12px 8px 34px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .atlas-sidebar-search input:focus {
+      border-color: #00d2ff;
+      background: rgba(0, 210, 255, 0.05);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+    }
+    .atlas-filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .atlas-pill {
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .atlas-pill:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .atlas-pill.active {
+      background: rgba(0, 210, 255, 0.2);
+      border-color: #00d2ff;
+      color: #00d2ff;
+    }
+
+    /* Selected Organ Card */
+    .atlas-selected-card {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .atlas-card-sys-tag {
+      font-size: 0.70rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #00d2ff;
+    }
+    .atlas-card-title-vi {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+      margin: 0;
+    }
+    .atlas-card-title-latin {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: #facc15;
+    }
+    .atlas-card-desc {
+      font-size: 0.80rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin: 4px 0 8px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .atlas-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .atlas-card-btn {
+      flex: 1;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .atlas-card-btn.primary {
+      background: linear-gradient(135deg, #00d2ff, #0077ff);
+      color: #000;
+      border: none;
+    }
+    .atlas-card-btn.primary:hover {
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.5);
+    }
+
+    /* Directory List */
+    .atlas-region-list-wrap {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .atlas-list-header {
+      padding: 10px 18px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(0,0,0,0.2);
+    }
+    .atlas-region-list {
+      display: flex;
+      flex-direction: column;
+      padding: 6px 8px;
+    }
+    .atlas-region-item {
+      padding: 9px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+    .atlas-region-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .atlas-region-item.active {
+      background: rgba(0, 210, 255, 0.15);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+    }
+    .atlas-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .atlas-item-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .atlas-item-texts {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .atlas-item-name-vi {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .atlas-item-name-latin {
+      font-size: 0.70rem;
+      color: #64748b;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -2744,14 +3182,20 @@
           <div class="atlas-square-sub" style="text-align:left; font-size: 0.72rem;">Thân tạng (Tripus celiacus) & Tuần hoàn tạng Netter BP 64</div>
         </div>
 
-        <!-- 3. Empty Slot #02 -->
-        <div class="atlas-square-card" onclick="clickEmptyAtlasSlot(2)">
-          <span class="atlas-square-badge">Bài #02</span>
-          <div class="atlas-square-icon-wrap">
-            <i class="fa-regular fa-square-plus"></i>
+        <!-- 3. Active Lesson #02: Hầu, Tuyến Giáp & Mạch Máu Cổ (2D Atlas Viền Phát Sáng) -->
+        <div class="atlas-square-card active-lesson" onclick="openInteractive2DAtlas('plate_pharynx_thyroid')" title="Bấm để mở bản đồ 2D tương tác phát sáng viền">
+          <div class="atlas-card-top-row">
+            <span class="atlas-square-badge featured" style="background: linear-gradient(135deg, #00d2ff, #0077ff); color:#000; font-weight:800;"><i class="fa-solid fa-wand-magic-sparkles"></i> 2D Viền Sáng ✨</span>
+            <span class="atlas-badge-live" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff; border-color: rgba(0, 210, 255, 0.3);"><i class="fa-solid fa-circle"></i> 24 Vùng Tương Tác</span>
           </div>
-          <div class="atlas-square-title">Ô Vuông Trống</div>
-          <div class="atlas-square-sub">Vị trí bài học chờ nhập</div>
+          <div class="atlas-card-thumbnail-wrap">
+            <img src="assets/atlas/plate_pharynx_thyroid.png" alt="Hầu, Tuyến Giáp & Mạch Máu Cổ" class="atlas-card-thumb-img">
+            <div class="atlas-card-thumb-overlay">
+              <span class="atlas-play-btn" style="background: #00d2ff; color: #000;"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            </div>
+          </div>
+          <div class="atlas-square-title" style="color:#00d2ff; text-align:left; font-size: 0.88rem; margin-top:4px;">Hầu, Tuyến Giáp & Mạch Máu Cổ</div>
+          <div class="atlas-square-sub" style="text-align:left; font-size: 0.72rem;">Bản đồ 2D tương tác: Click cơ quan phát sáng viền Neon & hiển thị kiến thức</div>
         </div>
 
         <!-- 4. Empty Slot #03 -->
@@ -3012,6 +3456,120 @@
             <div style="margin-top: 14px; padding: 12px 16px; background: rgba(0,210,255,0.06); border-radius: 10px; font-size: 0.82rem; color: #cbd5e1;">
               <strong>Ghi chú đối chiếu mô hình:</strong> Trong tranh vẽ của Netter, gan được lật ngược lên trên sang phải để bộc lộ rõ cuống gan và mặt tạng; mạc nối lớn được vén sang một bên. Mô hình 3D AnatoVi đã được căn chỉnh góc nhìn và độ trong suốt của gan/dạ dày để bạn có thể nhìn xuyên thấu và tương tác 360° tương đương góc nhìn mổ thực tế!
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- INTERACTIVE 2D ATLAS VIEWER MODAL                        -->
+  <!-- High-Resolution Anatomical Plate with Glowing Contours   -->
+  <!-- ======================================================== -->
+  <div id="atlas-interactive-viewer" class="hidden">
+    <!-- Header Bar -->
+    <div class="atlas-2d-header">
+      <div class="atlas-2d-title-group">
+        <div class="atlas-2d-title">
+          <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent);"></i>
+          <span id="atlas-2d-plate-title">Hầu, Tuyến Giáp và Mạch Máu Vùng Cổ - Ngực Trên</span>
+        </div>
+        <span class="atlas-2d-tag" id="atlas-2d-region-counter">24 Vùng Giải Phẫu</span>
+      </div>
+
+      <div class="atlas-2d-toolbar">
+        <!-- Glow Color Picker -->
+        <div class="atlas-2d-color-picker" title="Chọn màu viền phát sáng">
+          <span style="font-size: 0.72rem; color: #94a3b8; margin-right: 4px;">Màu viền:</span>
+          <button class="atlas-color-dot active" style="--dot-color: #00d2ff;" onclick="set2DAtlasGlowColor('#00d2ff', this)" title="Neon Cyan"></button>
+          <button class="atlas-color-dot" style="--dot-color: #facc15;" onclick="set2DAtlasGlowColor('#facc15', this)" title="Vàng Gold Y Khoa"></button>
+          <button class="atlas-color-dot" style="--dot-color: #ef4444;" onclick="set2DAtlasGlowColor('#ef4444', this)" title="Đỏ Động Mạch"></button>
+          <button class="atlas-color-dot" style="--dot-color: #3b82f6;" onclick="set2DAtlasGlowColor('#3b82f6', this)" title="Xanh Tĩnh Mạch"></button>
+          <button class="atlas-color-dot" style="--dot-color: #10b981;" onclick="set2DAtlasGlowColor('#10b981', this)" title="Xanh Bạch Huyết"></button>
+        </div>
+
+        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+
+        <!-- Zoom & View Tools -->
+        <button class="atlas-2d-btn" onclick="zoom2DAtlas(1.2)" title="Phóng to ảnh (+)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <button class="atlas-2d-btn" onclick="zoom2DAtlas(0.8)" title="Thu nhỏ ảnh (-)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+        <button class="atlas-2d-btn" onclick="reset2DAtlasZoom()" title="Vừa màn hình (100%)"><i class="fa-solid fa-compress"></i> 100%</button>
+
+        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+
+        <!-- Annotation / Custom Upload Mode -->
+        <button class="atlas-2d-btn" id="btn-atlas-editor" onclick="toggle2DAtlasDrawingMode()" title="Bật/Tắt công cụ vẽ khoanh vùng bộ phận mới"><i class="fa-solid fa-pen-nib"></i> <span id="txt-atlas-editor">Vẽ Vùng Mới</span></button>
+        <button class="atlas-2d-btn primary" onclick="document.getElementById('atlas-file-input').click()" title="Tải ảnh atlas khác từ máy tính của bạn"><i class="fa-solid fa-arrow-up-from-bracket"></i> Tải Ảnh Khác</button>
+        <input type="file" id="atlas-file-input" accept="image/*" style="display:none;" onchange="handleUserAtlasUpload(event)">
+
+        <button class="atlas-2d-btn close" onclick="closeInteractive2DAtlas()" title="Đóng bản đồ (Esc)"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <!-- Main Workspace Split -->
+    <div class="atlas-2d-body">
+      <!-- Left Stage: Image & SVG Contour Overlay -->
+      <div class="atlas-2d-stage" id="atlas-2d-stage">
+        <!-- Floating Drawing Mode Helper Bar -->
+        <div id="atlas-draw-toolbar" class="atlas-draw-toolbar hidden">
+          <div class="draw-tip"><i class="fa-solid fa-circle-info" style="color:#facc15;"></i> Click chuột lên ảnh để chấm các đỉnh bao quanh cơ quan. Bấm "Lưu Vùng" khi xong!</div>
+          <div class="draw-points-badge">Điểm đã chấm: <span id="draw-points-count">0</span></div>
+          <button class="atlas-2d-btn" onclick="undoLastDrawPoint()" style="padding:4px 10px; font-size:0.75rem;"><i class="fa-solid fa-rotate-left"></i> Hoàn tác</button>
+          <button class="atlas-2d-btn primary" onclick="promptSaveCurrentPolygon()" style="padding:4px 12px; font-size:0.75rem;"><i class="fa-solid fa-floppy-disk"></i> Lưu Vùng</button>
+          <button class="atlas-2d-btn close" onclick="cancelDrawingMode()" style="padding:4px 10px; font-size:0.75rem;">Hủy</button>
+        </div>
+
+        <div class="atlas-2d-viewport" id="atlas-2d-viewport">
+          <img src="assets/atlas/plate_pharynx_thyroid.png" alt="Anatomical Plate" class="atlas-2d-img" id="atlas-2d-img" onload="syncSvgDimensions()">
+          <svg class="atlas-2d-svg-overlay" id="atlas-2d-svg" viewBox="0 0 641 722" preserveAspectRatio="none">
+            <!-- Polygons injected dynamically by app.js -->
+          </svg>
+        </div>
+      </div>
+
+      <!-- Right Sidebar: Anatomy Explorer & Inspector -->
+      <div class="atlas-2d-sidebar">
+        <!-- Search & Filter Controls -->
+        <div class="atlas-sidebar-header">
+          <div class="atlas-sidebar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="atlas-2d-search" placeholder="Tìm kiếm bộ phận trên tranh..." oninput="filter2DAtlasSearch(this.value)">
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="atlas-filter-pills" id="atlas-category-pills">
+            <button class="atlas-pill active" onclick="filter2DAtlasCategory('all', this)">Tất cả (24)</button>
+            <button class="atlas-pill" onclick="filter2DAtlasCategory('arterial', this)">Động mạch</button>
+            <button class="atlas-pill" onclick="filter2DAtlasCategory('nervous', this)">Thần kinh</button>
+            <button class="atlas-pill" onclick="filter2DAtlasCategory('endocrine', this)">Nội tiết</button>
+            <button class="atlas-pill" onclick="filter2DAtlasCategory('venous', this)">Tĩnh mạch</button>
+            <button class="atlas-pill" onclick="filter2DAtlasCategory('muscular', this)">Cơ & Tiêu hóa</button>
+          </div>
+        </div>
+
+        <!-- Selected Organ Inspector Card -->
+        <div class="atlas-selected-card" id="atlas-2d-card">
+          <div class="atlas-card-sys-tag" id="atlas-card-sys">
+            <i class="fa-solid fa-heart-pulse"></i> Hệ Động Mạch
+          </div>
+          <h3 class="atlas-card-title-vi" id="atlas-card-name-vi">Cung động mạch chủ</h3>
+          <div class="atlas-card-title-latin" id="atlas-card-name-latin">Arcus aortae (Aortic arch)</div>
+          <p class="atlas-card-desc" id="atlas-card-desc">
+            Đoạn uốn cong của động mạch chủ từ trung thất trước sang trung thất sau. Tại đây thần kinh thanh quản quặt ngược trái vòng từ trước ra sau dưới cung ĐM chủ (ngay sau dây chằng động mạch) để đi ngược lên rãnh khí - thực quản.
+          </p>
+          <div class="atlas-card-actions">
+            <button class="atlas-card-btn primary" onclick="crossReferenceCurrent2DTo3D()" title="Tìm và đối chiếu vị trí cấu trúc này trên mô hình 3D toàn thân"><i class="fa-solid fa-cube"></i> Đối Chiếu Sang 3D</button>
+          </div>
+        </div>
+
+        <!-- Directory List of Regions -->
+        <div class="atlas-region-list-wrap">
+          <div class="atlas-list-header">
+            <span>DANH MỤC CÁC CƠ QUAN TRÊN TRANH</span>
+            <span id="atlas-visible-count">24</span>
+          </div>
+          <div class="atlas-region-list" id="atlas-region-list">
+            <!-- Dynamically populated -->
           </div>
         </div>
       </div>
@@ -3345,6 +3903,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260923_zanatomy_v1"></script>
+  <script src="app.js?v=20260924_2datlas_v1"></script>
 </body>
 </html>

@@ -1,0 +1,1024 @@
+[
+  {
+    "id": "plate_pharynx_thyroid",
+    "title": "Hầu, Tuyến Giáp và Mạch Máu Vùng Cổ - Ngực Trên (Mặt Sau)",
+    "subtitle": "Tranh giải phẫu lâm sàng kinh điển - Thiết đồ nhìn từ phía sau",
+    "image": "assets/atlas/plate_pharynx_thyroid.png",
+    "width": 641,
+    "height": 722,
+    "regions": [
+      {
+        "id": "aortic_arch",
+        "nameVi": "Cung động mạch chủ",
+        "nameLatin": "Arcus aortae",
+        "nameEn": "Aortic arch",
+        "system": "arterial",
+        "desc": "Đoạn uốn cong của động mạch chủ từ trung thất trước sang trung thất sau. Tại đây thần kinh thanh quản quặt ngược trái vòng từ trước ra sau dưới cung ĐM chủ (ngay sau dây chằng động mạch) để đi ngược lên rãnh khí - thực quản.",
+        "points": [
+          [
+            215,
+            590
+          ],
+          [
+            250,
+            560
+          ],
+          [
+            290,
+            570
+          ],
+          [
+            330,
+            595
+          ],
+          [
+            350,
+            640
+          ],
+          [
+            355,
+            715
+          ],
+          [
+            305,
+            715
+          ],
+          [
+            295,
+            660
+          ],
+          [
+            275,
+            655
+          ],
+          [
+            245,
+            680
+          ],
+          [
+            215,
+            695
+          ],
+          [
+            215,
+            590
+          ]
+        ]
+      },
+      {
+        "id": "recurrent_laryngeal_l",
+        "nameVi": "Thần kinh thanh quản quặt ngược (trái)",
+        "nameLatin": "Nervus laryngeus recurrens sinister",
+        "nameEn": "Left recurrent laryngeal nerve",
+        "system": "nervous",
+        "desc": "Tách từ dây thần kinh X trái, quặt ngược dưới quai động mạch chủ, đi lên trong rãnh giữa khí quản và thực quản, chi phối hầu hết các cơ nội tại của thanh quản (trừ cơ nhẫn giáp).",
+        "points": [
+          [
+            288,
+            675
+          ],
+          [
+            285,
+            645
+          ],
+          [
+            280,
+            600
+          ],
+          [
+            276,
+            560
+          ],
+          [
+            273,
+            520
+          ],
+          [
+            270,
+            480
+          ],
+          [
+            273,
+            440
+          ],
+          [
+            278,
+            440
+          ],
+          [
+            277,
+            480
+          ],
+          [
+            280,
+            520
+          ],
+          [
+            284,
+            560
+          ],
+          [
+            289,
+            600
+          ],
+          [
+            293,
+            645
+          ],
+          [
+            296,
+            675
+          ]
+        ]
+      },
+      {
+        "id": "recurrent_laryngeal_r",
+        "nameVi": "Thần kinh thanh quản quặt ngược (phải)",
+        "nameLatin": "Nervus laryngeus recurrens dexter",
+        "nameEn": "Right recurrent laryngeal nerve",
+        "system": "nervous",
+        "desc": "Tách từ dây X phải, quặt ngược dưới động mạch dưới đòn phải, chạy chếch lên rãnh khí - thực quản phải, bắt chéo các nhánh của động mạch giáp dưới. Rất dễ tổn thương khi phẫu thuật tuyến giáp.",
+        "points": [
+          [
+            425,
+            530
+          ],
+          [
+            395,
+            520
+          ],
+          [
+            370,
+            490
+          ],
+          [
+            365,
+            450
+          ],
+          [
+            362,
+            410
+          ],
+          [
+            358,
+            370
+          ],
+          [
+            363,
+            370
+          ],
+          [
+            367,
+            410
+          ],
+          [
+            370,
+            450
+          ],
+          [
+            375,
+            490
+          ],
+          [
+            400,
+            515
+          ],
+          [
+            428,
+            525
+          ]
+        ]
+      },
+      {
+        "id": "thyroid_right",
+        "nameVi": "Tuyến giáp (thùy phải - mặt sau)",
+        "nameLatin": "Glandula thyroidea (lobus dexter)",
+        "nameEn": "Thyroid gland (right lobe)",
+        "system": "endocrine",
+        "desc": "Mặt sau thùy phải tuyến giáp liên quan mật thiết với các tuyến cận giáp và động mạch giáp dưới cùng dây thần kinh thanh quản quặt ngược phải.",
+        "points": [
+          [
+            350,
+            240
+          ],
+          [
+            375,
+            245
+          ],
+          [
+            400,
+            280
+          ],
+          [
+            415,
+            330
+          ],
+          [
+            415,
+            375
+          ],
+          [
+            400,
+            405
+          ],
+          [
+            375,
+            400
+          ],
+          [
+            355,
+            360
+          ],
+          [
+            345,
+            300
+          ],
+          [
+            350,
+            240
+          ]
+        ]
+      },
+      {
+        "id": "thyroid_left",
+        "nameVi": "Tuyến giáp (thùy trái - mặt sau)",
+        "nameLatin": "Glandula thyroidea (lobus sinister)",
+        "nameEn": "Thyroid gland (left lobe)",
+        "system": "endocrine",
+        "desc": "Mặt sau thùy trái tuyến giáp, nằm áp sát thành bên của hầu và thực quản, có các tuyến cận giáp bám ở bờ sau.",
+        "points": [
+          [
+            265,
+            245
+          ],
+          [
+            235,
+            275
+          ],
+          [
+            215,
+            325
+          ],
+          [
+            215,
+            375
+          ],
+          [
+            235,
+            405
+          ],
+          [
+            255,
+            400
+          ],
+          [
+            275,
+            360
+          ],
+          [
+            285,
+            300
+          ],
+          [
+            275,
+            250
+          ],
+          [
+            265,
+            245
+          ]
+        ]
+      },
+      {
+        "id": "parathyroid_sup_r",
+        "nameVi": "Tuyến cận giáp trên (phải)",
+        "nameLatin": "Glandula parathyroidea superior dextra",
+        "nameEn": "Right superior parathyroid gland",
+        "system": "endocrine",
+        "desc": "Tuyến nội tiết nhỏ màu vàng nâu (hình hạt đậu), nằm ở nửa trên bờ sau thùy giáp, tiết Parathormone (PTH) điều hòa nồng độ canxi máu.",
+        "points": [
+          [
+            360,
+            310
+          ],
+          [
+            375,
+            310
+          ],
+          [
+            382,
+            325
+          ],
+          [
+            375,
+            335
+          ],
+          [
+            360,
+            330
+          ],
+          [
+            360,
+            310
+          ]
+        ]
+      },
+      {
+        "id": "parathyroid_inf_r",
+        "nameVi": "Tuyến cận giáp dưới (phải)",
+        "nameLatin": "Glandula parathyroidea inferior dextra",
+        "nameEn": "Right inferior parathyroid gland",
+        "system": "endocrine",
+        "desc": "Nằm ở cực dưới mặt sau thùy giáp phải, gần nơi tận cùng của động mạch giáp dưới.",
+        "points": [
+          [
+            368,
+            385
+          ],
+          [
+            382,
+            385
+          ],
+          [
+            388,
+            398
+          ],
+          [
+            380,
+            410
+          ],
+          [
+            365,
+            405
+          ],
+          [
+            368,
+            385
+          ]
+        ]
+      },
+      {
+        "id": "brachiocephalic_trunk",
+        "nameVi": "Thân cánh tay - đầu",
+        "nameLatin": "Truncus brachiocephalicus",
+        "nameEn": "Brachiocephalic trunk",
+        "system": "arterial",
+        "desc": "Nhánh lớn đầu tiên xuất phát từ cung động mạch chủ, chạy lên trên sang phải rồi chia thành ĐM cảnh chung phải và ĐM dưới đòn phải.",
+        "points": [
+          [
+            315,
+            580
+          ],
+          [
+            335,
+            520
+          ],
+          [
+            365,
+            520
+          ],
+          [
+            345,
+            585
+          ],
+          [
+            315,
+            580
+          ]
+        ]
+      },
+      {
+        "id": "common_carotid_r",
+        "nameVi": "Động mạch cảnh chung (phải)",
+        "nameLatin": "Arteria carotis communis dextra",
+        "nameEn": "Right common carotid artery",
+        "system": "arterial",
+        "desc": "Tách từ thân cánh tay đầu, chạy dọc bờ ngoài tuyến giáp trong bao cảnh, lên ngang mức bờ trên sụn giáp thì chia thành ĐM cảnh trong và cảnh ngoài.",
+        "points": [
+          [
+            410,
+            230
+          ],
+          [
+            425,
+            230
+          ],
+          [
+            435,
+            330
+          ],
+          [
+            440,
+            430
+          ],
+          [
+            425,
+            470
+          ],
+          [
+            410,
+            470
+          ],
+          [
+            425,
+            390
+          ],
+          [
+            415,
+            300
+          ],
+          [
+            410,
+            230
+          ]
+        ]
+      },
+      {
+        "id": "common_carotid_l",
+        "nameVi": "Động mạch cảnh chung (trái)",
+        "nameLatin": "Arteria carotis communis sinistra",
+        "nameEn": "Left common carotid artery",
+        "system": "arterial",
+        "desc": "Xuất phát trực tiếp từ cung động mạch chủ, đi lên vùng cổ bên trái.",
+        "points": [
+          [
+            215,
+            230
+          ],
+          [
+            230,
+            230
+          ],
+          [
+            225,
+            330
+          ],
+          [
+            215,
+            430
+          ],
+          [
+            210,
+            480
+          ],
+          [
+            195,
+            480
+          ],
+          [
+            205,
+            390
+          ],
+          [
+            215,
+            300
+          ],
+          [
+            215,
+            230
+          ]
+        ]
+      },
+      {
+        "id": "external_carotid",
+        "nameVi": "Động mạch cảnh ngoài",
+        "nameLatin": "Arteria carotis externa",
+        "nameEn": "External carotid artery",
+        "system": "arterial",
+        "desc": "Cấp máu cho toàn bộ vùng mặt, da đầu, các cấu trúc cổ, thanh quản, tuyến giáp và hầu.",
+        "points": [
+          [
+            410,
+            70
+          ],
+          [
+            425,
+            70
+          ],
+          [
+            428,
+            150
+          ],
+          [
+            415,
+            180
+          ],
+          [
+            410,
+            180
+          ],
+          [
+            415,
+            120
+          ],
+          [
+            410,
+            70
+          ]
+        ]
+      },
+      {
+        "id": "internal_carotid",
+        "nameVi": "Động mạch cảnh trong",
+        "nameLatin": "Arteria carotis interna",
+        "nameEn": "Internal carotid artery",
+        "system": "arterial",
+        "desc": "Đi thẳng lên nền sọ, chui qua ống động mạch cảnh xương thái dương để cấp máu cho não bộ và mắt.",
+        "points": [
+          [
+            435,
+            70
+          ],
+          [
+            448,
+            70
+          ],
+          [
+            445,
+            160
+          ],
+          [
+            430,
+            210
+          ],
+          [
+            420,
+            210
+          ],
+          [
+            435,
+            150
+          ],
+          [
+            435,
+            70
+          ]
+        ]
+      },
+      {
+        "id": "facial_artery",
+        "nameVi": "Động mạch mặt",
+        "nameLatin": "Arteria facialis",
+        "nameEn": "Facial artery",
+        "system": "arterial",
+        "desc": "Nhánh trước của động mạch cảnh ngoài, chạy ra trước dưới cơ hai thân đến góc hàm dưới rồi bò lên mặt.",
+        "points": [
+          [
+            410,
+            125
+          ],
+          [
+            425,
+            120
+          ],
+          [
+            432,
+            132
+          ],
+          [
+            415,
+            138
+          ],
+          [
+            410,
+            125
+          ]
+        ]
+      },
+      {
+        "id": "lingual_artery",
+        "nameVi": "Động mạch lưỡi",
+        "nameLatin": "Arteria lingualis",
+        "nameEn": "Lingual artery",
+        "system": "arterial",
+        "desc": "Tách từ ĐM cảnh ngoài đối diện sừng lớn xương móng, đi sâu vào gốc lưỡi cấp máu cho lưỡi và sàn miệng.",
+        "points": [
+          [
+            412,
+            150
+          ],
+          [
+            428,
+            145
+          ],
+          [
+            435,
+            158
+          ],
+          [
+            418,
+            162
+          ],
+          [
+            412,
+            150
+          ]
+        ]
+      },
+      {
+        "id": "superior_thyroid_artery",
+        "nameVi": "Động mạch giáp trên",
+        "nameLatin": "Arteria thyroidea superior",
+        "nameEn": "Superior thyroid artery",
+        "system": "arterial",
+        "desc": "Nhánh đầu tiên của ĐM cảnh ngoài, đi xuống cực trên thùy giáp, tách nhánh ĐM thanh quản trên chọc qua màng giáp - móng.",
+        "points": [
+          [
+            415,
+            200
+          ],
+          [
+            430,
+            200
+          ],
+          [
+            435,
+            235
+          ],
+          [
+            410,
+            255
+          ],
+          [
+            405,
+            240
+          ],
+          [
+            425,
+            225
+          ],
+          [
+            415,
+            200
+          ]
+        ]
+      },
+      {
+        "id": "inferior_thyroid_artery",
+        "nameVi": "Động mạch giáp dưới",
+        "nameLatin": "Arteria thyroidea inferior",
+        "nameEn": "Inferior thyroid artery",
+        "system": "arterial",
+        "desc": "Tách từ thân giáp - cổ, đi vòng lên sau bao cảnh rồi quặt sang ngang đến mặt sau cực dưới tuyến giáp, bắt chéo thần kinh thanh quản quặt ngược.",
+        "points": [
+          [
+            385,
+            455
+          ],
+          [
+            415,
+            450
+          ],
+          [
+            425,
+            435
+          ],
+          [
+            435,
+            445
+          ],
+          [
+            420,
+            465
+          ],
+          [
+            385,
+            470
+          ],
+          [
+            385,
+            455
+          ]
+        ]
+      },
+      {
+        "id": "thyrocervical_trunk",
+        "nameVi": "Thân giáp - cổ",
+        "nameLatin": "Truncus thyrocervicalis",
+        "nameEn": "Thyrocervical trunk",
+        "system": "arterial",
+        "desc": "Nhánh ngắn tách từ mặt trên đoạn 1 động mạch dưới đòn, chia ra: ĐM giáp dưới, ĐM vai trên và ĐM ngang cổ.",
+        "points": [
+          [
+            418,
+            470
+          ],
+          [
+            435,
+            470
+          ],
+          [
+            440,
+            500
+          ],
+          [
+            425,
+            505
+          ],
+          [
+            418,
+            470
+          ]
+        ]
+      },
+      {
+        "id": "vagus_nerve_r",
+        "nameVi": "Thần kinh lang thang (X - phải)",
+        "nameLatin": "Nervus vagus dexter (X)",
+        "nameEn": "Right vagus nerve (X)",
+        "system": "nervous",
+        "desc": "Chạy trong bao cảnh (nằm ở góc nhị diện phía sau giữa ĐM cảnh và TM cảnh trong). Tại nền cổ, dây X phải bắt chéo trước ĐM dưới đòn và cho nhánh thanh quản quặt ngược phải.",
+        "points": [
+          [
+            445,
+            80
+          ],
+          [
+            455,
+            80
+          ],
+          [
+            460,
+            260
+          ],
+          [
+            460,
+            450
+          ],
+          [
+            455,
+            520
+          ],
+          [
+            445,
+            520
+          ],
+          [
+            450,
+            450
+          ],
+          [
+            450,
+            260
+          ],
+          [
+            445,
+            80
+          ]
+        ]
+      },
+      {
+        "id": "vagus_nerve_l",
+        "nameVi": "Thần kinh lang thang (X - trái)",
+        "nameLatin": "Nervus vagus sinister (X)",
+        "nameEn": "Left vagus nerve (X)",
+        "system": "nervous",
+        "desc": "Chạy trong bao cảnh bên trái, xuống ngực bắt chéo trước quai động mạch chủ và cho nhánh thanh quản quặt ngược trái vòng dưới quai ĐM chủ.",
+        "points": [
+          [
+            180,
+            80
+          ],
+          [
+            190,
+            80
+          ],
+          [
+            185,
+            300
+          ],
+          [
+            185,
+            500
+          ],
+          [
+            210,
+            600
+          ],
+          [
+            230,
+            660
+          ],
+          [
+            220,
+            665
+          ],
+          [
+            200,
+            600
+          ],
+          [
+            175,
+            500
+          ],
+          [
+            175,
+            300
+          ],
+          [
+            180,
+            80
+          ]
+        ]
+      },
+      {
+        "id": "internal_jugular_vein_r",
+        "nameVi": "Tĩnh mạch cảnh trong (phải)",
+        "nameLatin": "Vena jugularis interna dextra",
+        "nameEn": "Right internal jugular vein",
+        "system": "venous",
+        "desc": "Tĩnh mạch lớn nhất vùng cổ, nằm phía ngoài động mạch cảnh chung. Tại nền cổ phình ra thành hành dưới trước khi hợp với TM dưới đòn tạo thành thân TM cánh tay đầu.",
+        "points": [
+          [
+            455,
+            160
+          ],
+          [
+            480,
+            160
+          ],
+          [
+            485,
+            320
+          ],
+          [
+            480,
+            480
+          ],
+          [
+            465,
+            510
+          ],
+          [
+            450,
+            510
+          ],
+          [
+            465,
+            460
+          ],
+          [
+            470,
+            320
+          ],
+          [
+            455,
+            160
+          ]
+        ]
+      },
+      {
+        "id": "pharyngeal_constrictors",
+        "nameVi": "Các cơ khít hầu (Trên, Giữa, Dưới)",
+        "nameLatin": "Musculi constrictores pharyngis",
+        "nameEn": "Pharyngeal constrictor muscles",
+        "system": "muscular",
+        "desc": "Các bản cơ vân ôm vòng thành sau và hai bên hầu, xếp lợp ngói từ trên xuống dưới, đan nhau ở đường giữa tạo thành Vách hầu giữa (Raphe pharyngis), có vai trò co bóp đẩy viên thức ăn xuống thực quản.",
+        "points": [
+          [
+            240,
+            50
+          ],
+          [
+            390,
+            50
+          ],
+          [
+            410,
+            140
+          ],
+          [
+            395,
+            240
+          ],
+          [
+            380,
+            310
+          ],
+          [
+            345,
+            345
+          ],
+          [
+            300,
+            345
+          ],
+          [
+            260,
+            310
+          ],
+          [
+            240,
+            240
+          ],
+          [
+            225,
+            140
+          ],
+          [
+            240,
+            50
+          ]
+        ]
+      },
+      {
+        "id": "esophagus",
+        "nameVi": "Cơ dọc và cơ vòng thực quản",
+        "nameLatin": "Esophagus (tunica muscularis)",
+        "nameEn": "Esophagus (muscular layer)",
+        "system": "digestive",
+        "desc": "Đoạn đầu thực quản liên tiếp với hạ hầu tại ngang mức đốt sống cổ C6 (ngay dưới cơ nhẫn hầu). Chú ý vùng tam giác Laimer là vùng cơ dọc thưa thớt dễ xuất hiện túi thừa thực quản.",
+        "points": [
+          [
+            290,
+            345
+          ],
+          [
+            340,
+            345
+          ],
+          [
+            345,
+            440
+          ],
+          [
+            345,
+            530
+          ],
+          [
+            290,
+            530
+          ],
+          [
+            285,
+            440
+          ],
+          [
+            290,
+            345
+          ]
+        ]
+      },
+      {
+        "id": "trachea",
+        "nameVi": "Khí quản",
+        "nameLatin": "Trachea",
+        "nameEn": "Trachea",
+        "system": "respiratory",
+        "desc": "Ống dẫn khí hình trụ dẹt phía sau, cấu tạo bởi 16–20 vòng sụn chữ C khuyết ở mặt sau (nơi có cơ khí quản) nằm ngay trước thực quản.",
+        "points": [
+          [
+            285,
+            530
+          ],
+          [
+            350,
+            530
+          ],
+          [
+            350,
+            600
+          ],
+          [
+            285,
+            600
+          ],
+          [
+            285,
+            530
+          ]
+        ]
+      },
+      {
+        "id": "superior_vena_cava",
+        "nameVi": "Tĩnh mạch chủ trên",
+        "nameLatin": "Vena cava superior",
+        "nameEn": "Superior vena cava",
+        "system": "venous",
+        "desc": "Hợp lưu của 2 thân tĩnh mạch cánh tay đầu trái và phải, dẫn toàn bộ máu tĩnh mạch nửa trên cơ thể đổ về tâm nhĩ phải.",
+        "points": [
+          [
+            365,
+            620
+          ],
+          [
+            420,
+            620
+          ],
+          [
+            425,
+            715
+          ],
+          [
+            365,
+            715
+          ],
+          [
+            365,
+            620
+          ]
+        ]
+      }
+    ]
+  }
+]

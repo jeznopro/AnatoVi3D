@@ -3104,6 +3104,7 @@ function smoothMoveCamera(pos, target) {
 // Support Esc key to dismiss overlays, inspector, and search, and H to hide selected
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    closeInteractive2DAtlas();
     closeAtlasOverlay();
     closeHubOverlay();
     closeInspector();
@@ -4848,4 +4849,497 @@ window.addEventListener('load', () => {
   initStudyMode();
   updateHighlightModeUI();
 });
+
+// ========================================================
+// INTERACTIVE 2D ATLAS VIEWER ENGINE
+// High-Resolution 2D Plates with Glowing Vector Contours
+// Cross-Referencing 2D Plates <-> 3D Anatomical Models
+// ========================================================
+
+let current2DPlate = null;
+let current2DPlateData = null;
+let current2DSelectedRegion = null;
+let atlas2DZoom = 1.0;
+let atlas2DPan = { x: 0, y: 0 };
+let is2DAtlasDrawingMode = false;
+let currentDrawPoints = [];
+
+// System category colors & icons
+const ATLAS_2D_SYSTEMS = {
+  arterial: { name: 'Hệ Động Mạch', color: '#ef4444', icon: 'fa-heart-pulse' },
+  venous: { name: 'Hệ Tĩnh Mạch', color: '#3b82f6', icon: 'fa-droplet' },
+  nervous: { name: 'Hệ Thần Kinh', color: '#facc15', icon: 'fa-bolt' },
+  endocrine: { name: 'Tuyến Nội Tiết', color: '#a855f7', icon: 'fa-certificate' },
+  muscular: { name: 'Hệ Cơ Bắp', color: '#f43f5e', icon: 'fa-dumbbell' },
+  digestive: { name: 'Hệ Tiêu Hóa', color: '#f97316', icon: 'fa-utensils' },
+  respiratory: { name: 'Hệ Hô Hấp', color: '#06b6d4', icon: 'fa-lungs' },
+  skeletal: { name: 'Hệ Xương', color: '#e2d5a8', icon: 'fa-bone' }
+};
+
+async function openInteractive2DAtlas(plateId = 'plate_pharynx_thyroid') {
+  const viewer = document.getElementById('atlas-interactive-viewer');
+  if (!viewer) return;
+
+  try {
+    const res = await fetch(`data/atlas_plates.json?v=${Date.now()}`);
+    if (res.ok) {
+      const plates = await res.json();
+      current2DPlateData = plates.find(p => p.id === plateId) || plates[0];
+    }
+  } catch (err) {
+    console.warn("Could not load atlas_plates.json, using fallback", err);
+  }
+
+  if (!current2DPlateData) {
+    console.error("No plate data found for", plateId);
+    return;
+  }
+
+  // Load custom user regions from localStorage if available
+  try {
+    const savedCustom = localStorage.getItem(`atlas_custom_${current2DPlateData.id}`);
+    if (savedCustom) {
+      const customRegions = JSON.parse(savedCustom);
+      if (Array.isArray(customRegions) && customRegions.length > 0) {
+        const existingIds = new Set(current2DPlateData.regions.map(r => r.id));
+        customRegions.forEach(cr => {
+          if (!existingIds.has(cr.id)) {
+            current2DPlateData.regions.push(cr);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  current2DPlate = plateId;
+  reset2DAtlasZoom();
+
+  // Populate Header
+  const titleEl = document.getElementById('atlas-2d-plate-title');
+  if (titleEl) titleEl.textContent = current2DPlateData.title;
+
+  const countEl = document.getElementById('atlas-2d-region-counter');
+  if (countEl) countEl.textContent = `${current2DPlateData.regions.length} Vùng Giải Phẫu`;
+
+  // Populate Image
+  const imgEl = document.getElementById('atlas-2d-img');
+  if (imgEl) {
+    imgEl.src = current2DPlateData.image;
+  }
+
+  // Populate SVG Viewbox & Render Polygons
+  const svgEl = document.getElementById('atlas-2d-svg');
+  if (svgEl) {
+    svgEl.setAttribute('viewBox', `0 0 ${current2DPlateData.width || 641} ${current2DPlateData.height || 722}`);
+    render2DAtlasPolygons();
+  }
+
+  // Render Directory
+  render2DAtlasDirectory(current2DPlateData.regions);
+
+  // Select first region as default
+  if (current2DPlateData.regions && current2DPlateData.regions.length > 0) {
+    select2DAtlasRegion(current2DPlateData.regions[0].id);
+  }
+
+  // Close other overlays & show viewer
+  closeAtlasOverlay();
+  closeHubOverlay();
+  viewer.classList.remove('hidden');
+
+  // Setup drawing click events on SVG
+  setup2DAtlasDrawingEvents();
+}
+
+function closeInteractive2DAtlas() {
+  const viewer = document.getElementById('atlas-interactive-viewer');
+  if (viewer) viewer.classList.add('hidden');
+  cancelDrawingMode();
+}
+
+function syncSvgDimensions() {
+  const img = document.getElementById('atlas-2d-img');
+  const svg = document.getElementById('atlas-2d-svg');
+  if (img && svg && img.naturalWidth && img.naturalHeight) {
+    svg.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+  }
+}
+
+function render2DAtlasPolygons(filterList = null) {
+  const svg = document.getElementById('atlas-2d-svg');
+  if (!svg || !current2DPlateData) return;
+
+  svg.innerHTML = '';
+  const regions = filterList || current2DPlateData.regions;
+
+  regions.forEach(reg => {
+    if (!reg.points || reg.points.length < 3) return;
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    const ptsStr = reg.points.map(pt => `${pt[0]},${pt[1]}`).join(' ');
+    poly.setAttribute('points', ptsStr);
+    poly.setAttribute('class', 'plate-polygon');
+    poly.setAttribute('id', `poly-${reg.id}`);
+    poly.setAttribute('data-id', reg.id);
+
+    const sysMeta = ATLAS_2D_SYSTEMS[reg.system] || ATLAS_2D_SYSTEMS.arterial;
+    poly.style.setProperty('--reg-color', sysMeta.color);
+
+    poly.addEventListener('mouseenter', () => {
+      if (is2DAtlasDrawingMode) return;
+      highlight2DAtlasItemInList(reg.id, true);
+    });
+
+    poly.addEventListener('mouseleave', () => {
+      if (is2DAtlasDrawingMode) return;
+      highlight2DAtlasItemInList(reg.id, false);
+    });
+
+    poly.addEventListener('click', (e) => {
+      if (is2DAtlasDrawingMode) return;
+      e.stopPropagation();
+      select2DAtlasRegion(reg.id);
+    });
+
+    svg.appendChild(poly);
+  });
+}
+
+function select2DAtlasRegion(regId) {
+  if (!current2DPlateData) return;
+  const reg = current2DPlateData.regions.find(r => r.id === regId);
+  if (!reg) return;
+
+  current2DSelectedRegion = reg;
+
+  // Active class on SVG
+  const allPolys = document.querySelectorAll('.plate-polygon');
+  allPolys.forEach(p => p.classList.remove('active'));
+
+  const targetPoly = document.getElementById(`poly-${reg.id}`);
+  if (targetPoly) {
+    targetPoly.classList.add('active');
+  }
+
+  // Active class in Directory list
+  const allItems = document.querySelectorAll('.atlas-region-item');
+  allItems.forEach(it => it.classList.remove('active'));
+  const targetItem = document.getElementById(`item-${reg.id}`);
+  if (targetItem) {
+    targetItem.classList.add('active');
+    targetItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Update Inspector Card
+  const sysMeta = ATLAS_2D_SYSTEMS[reg.system] || ATLAS_2D_SYSTEMS.arterial;
+  const sysTag = document.getElementById('atlas-card-sys');
+  if (sysTag) {
+    sysTag.innerHTML = `<i class="fa-solid ${sysMeta.icon}" style="color:${sysMeta.color};"></i> ${sysMeta.name}`;
+    sysTag.style.color = sysMeta.color;
+  }
+
+  const nameViEl = document.getElementById('atlas-card-name-vi');
+  if (nameViEl) nameViEl.textContent = reg.nameVi;
+
+  const nameLatinEl = document.getElementById('atlas-card-name-latin');
+  if (nameLatinEl) nameLatinEl.textContent = `${reg.nameLatin || ''} (${reg.nameEn || ''})`;
+
+  const descEl = document.getElementById('atlas-card-desc');
+  if (descEl) descEl.textContent = reg.desc || 'Chi tiết giải phẫu học trên thiết đồ Netter 2D.';
+}
+
+function highlight2DAtlasItemInList(regId, isHovered) {
+  const targetItem = document.getElementById(`item-${regId}`);
+  if (targetItem) {
+    if (isHovered) {
+      targetItem.style.background = 'rgba(0, 210, 255, 0.12)';
+    } else if (!targetItem.classList.contains('active')) {
+      targetItem.style.background = '';
+    }
+  }
+}
+
+function render2DAtlasDirectory(regions) {
+  const listEl = document.getElementById('atlas-region-list');
+  const countEl = document.getElementById('atlas-visible-count');
+  if (!listEl) return;
+
+  listEl.innerHTML = '';
+  if (countEl) countEl.textContent = regions.length;
+
+  regions.forEach(reg => {
+    const sysMeta = ATLAS_2D_SYSTEMS[reg.system] || ATLAS_2D_SYSTEMS.arterial;
+    const item = document.createElement('div');
+    item.className = 'atlas-region-item';
+    item.id = `item-${reg.id}`;
+
+    item.innerHTML = `
+      <div class="atlas-item-left">
+        <div class="atlas-item-dot" style="background:${sysMeta.color}; box-shadow: 0 0 6px ${sysMeta.color};"></div>
+        <div class="atlas-item-texts">
+          <span class="atlas-item-name-vi">${reg.nameVi}</span>
+          <span class="atlas-item-name-latin">${reg.nameLatin || reg.nameEn || ''}</span>
+        </div>
+      </div>
+      <i class="fa-solid fa-chevron-right" style="font-size:0.7rem; color:#475569;"></i>
+    `;
+
+    item.addEventListener('mouseenter', () => {
+      const poly = document.getElementById(`poly-${reg.id}`);
+      if (poly) poly.classList.add('hover-synced');
+    });
+    item.addEventListener('mouseleave', () => {
+      const poly = document.getElementById(`poly-${reg.id}`);
+      if (poly) poly.classList.remove('hover-synced');
+    });
+
+    item.addEventListener('click', () => {
+      select2DAtlasRegion(reg.id);
+    });
+
+    listEl.appendChild(item);
+  });
+}
+
+function filter2DAtlasCategory(cat, btn) {
+  if (!current2DPlateData) return;
+
+  const pills = document.querySelectorAll('.atlas-pill');
+  pills.forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  let filtered = current2DPlateData.regions;
+  if (cat !== 'all') {
+    if (cat === 'muscular') {
+      filtered = current2DPlateData.regions.filter(r => r.system === 'muscular' || r.system === 'digestive');
+    } else {
+      filtered = current2DPlateData.regions.filter(r => r.system === cat);
+    }
+  }
+
+  render2DAtlasDirectory(filtered);
+  render2DAtlasPolygons(filtered);
+
+  if (filtered.length > 0) {
+    select2DAtlasRegion(filtered[0].id);
+  }
+}
+
+function filter2DAtlasSearch(val) {
+  if (!current2DPlateData) return;
+  const q = (val || '').toLowerCase().trim();
+  const qClean = stripVietnamese(q);
+
+  const filtered = current2DPlateData.regions.filter(r => {
+    if (!q) return true;
+    const nameVi = stripVietnamese(r.nameVi || '');
+    const nameLatin = (r.nameLatin || '').toLowerCase();
+    const nameEn = (r.nameEn || '').toLowerCase();
+    return nameVi.includes(qClean) || nameLatin.includes(q) || nameEn.includes(q);
+  });
+
+  render2DAtlasDirectory(filtered);
+  render2DAtlasPolygons(filtered);
+
+  if (filtered.length > 0) {
+    select2DAtlasRegion(filtered[0].id);
+  }
+}
+
+function set2DAtlasGlowColor(colorHex, btn) {
+  const viewer = document.getElementById('atlas-interactive-viewer');
+  if (viewer) {
+    viewer.style.setProperty('--active-glow-color', colorHex);
+  }
+  const dots = document.querySelectorAll('.atlas-color-dot');
+  dots.forEach(d => d.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function zoom2DAtlas(factor) {
+  atlas2DZoom *= factor;
+  atlas2DZoom = Math.max(0.6, Math.min(3.5, atlas2DZoom));
+  apply2DAtlasTransform();
+}
+
+function reset2DAtlasZoom() {
+  atlas2DZoom = 1.0;
+  atlas2DPan = { x: 0, y: 0 };
+  apply2DAtlasTransform();
+}
+
+function apply2DAtlasTransform() {
+  const vp = document.getElementById('atlas-2d-viewport');
+  if (vp) {
+    vp.style.transform = `scale(${atlas2DZoom}) translate(${atlas2DPan.x}px, ${atlas2DPan.y}px)`;
+  }
+}
+
+function crossReferenceCurrent2DTo3D() {
+  if (!current2DSelectedRegion) return;
+  const targetName = current2DSelectedRegion.nameVi || current2DSelectedRegion.nameEn;
+  closeInteractive2DAtlas();
+
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.value = targetName;
+    const results = findAnatomySearchResults(targetName);
+    if (results && results.length > 0) {
+      selectSearchResult(results[0]);
+    }
+  }
+}
+
+// Annotation / Draw Mode for New Organ Regions
+function toggle2DAtlasDrawingMode() {
+  if (is2DAtlasDrawingMode) {
+    cancelDrawingMode();
+  } else {
+    is2DAtlasDrawingMode = true;
+    currentDrawPoints = [];
+    const bar = document.getElementById('atlas-draw-toolbar');
+    if (bar) bar.classList.remove('hidden');
+    const txt = document.getElementById('txt-atlas-editor');
+    if (txt) txt.textContent = 'Đang Vẽ...';
+    const stage = document.getElementById('atlas-2d-stage');
+    if (stage) stage.style.cursor = 'crosshair';
+  }
+}
+
+function cancelDrawingMode() {
+  is2DAtlasDrawingMode = false;
+  currentDrawPoints = [];
+  const bar = document.getElementById('atlas-draw-toolbar');
+  if (bar) bar.classList.add('hidden');
+  const txt = document.getElementById('txt-atlas-editor');
+  if (txt) txt.textContent = 'Vẽ Vùng Mới';
+  const stage = document.getElementById('atlas-2d-stage');
+  if (stage) stage.style.cursor = '';
+  const tempPoly = document.getElementById('temp-draw-polygon');
+  if (tempPoly) tempPoly.remove();
+}
+
+function setup2DAtlasDrawingEvents() {
+  const svg = document.getElementById('atlas-2d-svg');
+  if (!svg || svg._drawEventsAttached) return;
+  svg._drawEventsAttached = true;
+
+  svg.addEventListener('click', (e) => {
+    if (!is2DAtlasDrawingMode) return;
+    const rect = svg.getBoundingClientRect();
+    const viewBox = svg.viewBox.baseVal;
+    const scaleX = viewBox.width / rect.width;
+    const scaleY = viewBox.height / rect.height;
+
+    const x = Math.round((e.clientX - rect.left) * scaleX);
+    const y = Math.round((e.clientY - rect.top) * scaleY);
+
+    currentDrawPoints.push([x, y]);
+    updateLiveDrawPolygon();
+
+    const countEl = document.getElementById('draw-points-count');
+    if (countEl) countEl.textContent = currentDrawPoints.length;
+  });
+}
+
+function updateLiveDrawPolygon() {
+  const svg = document.getElementById('atlas-2d-svg');
+  if (!svg) return;
+  let tempPoly = document.getElementById('temp-draw-polygon');
+  if (!tempPoly) {
+    tempPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    tempPoly.setAttribute('id', 'temp-draw-polygon');
+    tempPoly.setAttribute('style', 'fill: rgba(250, 204, 21, 0.25); stroke: #facc15; stroke-width: 3px; stroke-dasharray: 4 2;');
+    svg.appendChild(tempPoly);
+  }
+  const ptsStr = currentDrawPoints.map(p => `${p[0]},${p[1]}`).join(' ');
+  tempPoly.setAttribute('points', ptsStr);
+}
+
+function undoLastDrawPoint() {
+  if (!is2DAtlasDrawingMode || currentDrawPoints.length === 0) return;
+  currentDrawPoints.pop();
+  updateLiveDrawPolygon();
+  const countEl = document.getElementById('draw-points-count');
+  if (countEl) countEl.textContent = currentDrawPoints.length;
+}
+
+function promptSaveCurrentPolygon() {
+  if (currentDrawPoints.length < 3) {
+    alert("Vui lòng click ít nhất 3 điểm trên ảnh để tạo thành một hình đa giác viền quanh cơ quan!");
+    return;
+  }
+
+  const nameVi = prompt("Nhập tên bộ phận giải phẫu (Tiếng Việt):", "Bộ phận mới");
+  if (!nameVi) return;
+
+  const nameLatin = prompt("Nhập danh pháp Latinh (hoặc tiếng Anh):", "");
+  const system = prompt("Hệ cơ quan (arterial / venous / nervous / endocrine / muscular):", "arterial") || "arterial";
+
+  const newId = 'custom_' + Date.now();
+  const newRegion = {
+    id: newId,
+    nameVi: nameVi.trim(),
+    nameLatin: (nameLatin || '').trim(),
+    nameEn: (nameLatin || '').trim(),
+    system: system.trim(),
+    desc: `Cấu trúc do bạn tùy chỉnh và khoanh vùng trên bản đồ 2D. Tọa độ gồm ${currentDrawPoints.length} đỉnh đa giác.`,
+    points: [...currentDrawPoints]
+  };
+
+  current2DPlateData.regions.push(newRegion);
+
+  try {
+    const savedCustom = JSON.parse(localStorage.getItem(`atlas_custom_${current2DPlateData.id}`) || '[]');
+    savedCustom.push(newRegion);
+    localStorage.setItem(`atlas_custom_${current2DPlateData.id}`, JSON.stringify(savedCustom));
+  } catch (e) {}
+
+  cancelDrawingMode();
+  render2DAtlasPolygons();
+  render2DAtlasDirectory(current2DPlateData.regions);
+  select2DAtlasRegion(newId);
+
+  alert(`Đã lưu thành công vùng "${nameVi}"!\nBây giờ bạn có thể click vào bộ phận này để phát sáng viền.`);
+}
+
+function handleUserAtlasUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const customImg = new Image();
+    customImg.onload = () => {
+      const customPlateId = 'custom_plate_' + Date.now();
+      current2DPlateData = {
+        id: customPlateId,
+        title: file.name.replace(/\.[^/.]+$/, ""),
+        subtitle: 'Bản đồ 2D tùy chỉnh của bạn - Sẵn sàng vẽ viền phát sáng',
+        image: dataUrl,
+        width: customImg.width,
+        height: customImg.height,
+        regions: []
+      };
+
+      const titleEl = document.getElementById('atlas-2d-plate-title');
+      if (titleEl) titleEl.textContent = current2DPlateData.title;
+
+      const imgEl = document.getElementById('atlas-2d-img');
+      if (imgEl) imgEl.src = dataUrl;
+
+      const svgEl = document.getElementById('atlas-2d-svg');
+      if (svgEl) {
+        svgEl.setAttribute('viewBox', `0 0 ${customImg.width} ${customImg.height}`);
+        svgEl.innerHTML = '';
+      }
+
+      render2DAtlasDirectory([]);
+      toggle2DAtlasDrawingMode();
+      alert("Đã tải ảnh lên thành công!\nỨng dụng đã tự động bật 'Chế độ vẽ viền'.\nHãy click các điểm quanh mép cơ quan trên ảnh để tạo viền phát sáng nhé!");
+    };
+    customImg.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
 
