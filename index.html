@@ -2690,6 +2690,16 @@
       box-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
       transform: translateY(-1px);
     }
+    .atlas-2d-btn.wand {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+    .atlas-2d-btn.wand:hover, .atlas-2d-btn.wand.active {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
     .atlas-2d-btn.close {
       background: rgba(255, 71, 87, 0.15);
       color: #ff4757;
@@ -3498,7 +3508,8 @@
         <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
 
         <!-- Annotation / Custom Upload Mode -->
-        <button class="atlas-2d-btn" id="btn-atlas-editor" onclick="toggle2DAtlasDrawingMode()" title="Bật/Tắt công cụ vẽ khoanh vùng bộ phận mới"><i class="fa-solid fa-pen-nib"></i> <span id="txt-atlas-editor">Vẽ Vùng Mới</span></button>
+        <button class="atlas-2d-btn wand" id="btn-atlas-wand" onclick="toggle2DAtlasMagicWand()" title="Tự động nhận diện nét viền đen của tranh vẽ: Click 1 cái vào lòng cơ quan để ôm trọn viền"><i class="fa-solid fa-wand-magic-sparkles"></i> <span id="txt-atlas-wand">Tự Bắt Viền Đen (1 Click)</span></button>
+        <button class="atlas-2d-btn" id="btn-atlas-editor" onclick="toggle2DAtlasDrawingMode()" title="Chế độ chấm điểm thủ công quanh mép cơ quan"><i class="fa-solid fa-pen-nib"></i> <span id="txt-atlas-editor">Chấm Điểm</span></button>
         <button class="atlas-2d-btn primary" onclick="document.getElementById('atlas-file-input').click()" title="Tải ảnh atlas khác từ máy tính của bạn"><i class="fa-solid fa-arrow-up-from-bracket"></i> Tải Ảnh Khác</button>
         <input type="file" id="atlas-file-input" accept="image/*" style="display:none;" onchange="handleUserAtlasUpload(event)">
 
@@ -3512,11 +3523,15 @@
       <div class="atlas-2d-stage" id="atlas-2d-stage">
         <!-- Floating Drawing Mode Helper Bar -->
         <div id="atlas-draw-toolbar" class="atlas-draw-toolbar hidden">
-          <div class="draw-tip"><i class="fa-solid fa-circle-info" style="color:#facc15;"></i> Click chuột lên ảnh để chấm các đỉnh bao quanh cơ quan. Bấm "Lưu Vùng" khi xong!</div>
-          <div class="draw-points-badge">Điểm đã chấm: <span id="draw-points-count">0</span></div>
+          <div class="draw-tip" id="atlas-draw-tip"><i class="fa-solid fa-wand-magic-sparkles" style="color:#38bdf8;"></i> <span>Click 1 cái vào lòng cơ quan, thuật toán sẽ tự động dò theo viền đen của tranh vẽ!</span></div>
+          <div class="draw-points-badge">Đỉnh: <span id="draw-points-count">0</span></div>
+          <div style="display:flex; align-items:center; gap:5px; font-size:0.75rem; color:#cbd5e1;" title="Ngưỡng nhận diện nét vẽ viền đen">
+            <span>Nét đen:</span>
+            <input type="range" id="atlas-wand-threshold" min="50" max="140" value="95" style="width:65px; accent-color:#38bdf8; cursor:pointer;" onchange="setAtlasDarkLineThreshold(this.value)">
+          </div>
           <button class="atlas-2d-btn" onclick="undoLastDrawPoint()" style="padding:4px 10px; font-size:0.75rem;"><i class="fa-solid fa-rotate-left"></i> Hoàn tác</button>
           <button class="atlas-2d-btn primary" onclick="promptSaveCurrentPolygon()" style="padding:4px 12px; font-size:0.75rem;"><i class="fa-solid fa-floppy-disk"></i> Lưu Vùng</button>
-          <button class="atlas-2d-btn close" onclick="cancelDrawingMode()" style="padding:4px 10px; font-size:0.75rem;">Hủy</button>
+          <button class="atlas-2d-btn close" onclick="cancelDrawingMode()" style="padding:4px 10px; font-size:0.75rem;">Đóng</button>
         </div>
 
         <div class="atlas-2d-viewport" id="atlas-2d-viewport">
@@ -3903,6 +3918,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260924_2datlas_v1"></script>
+  <script src="app.js?v=20260925_magicwand_v1"></script>
 </body>
 </html>

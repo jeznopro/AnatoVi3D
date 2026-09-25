@@ -4862,6 +4862,10 @@ let current2DSelectedRegion = null;
 let atlas2DZoom = 1.0;
 let atlas2DPan = { x: 0, y: 0 };
 let is2DAtlasDrawingMode = false;
+let is2DAtlasMagicWandMode = false;
+let atlasDarkLineThreshold = 95;
+let atlasOffscreenCanvas = null;
+let atlasOffscreenCtx = null;
 let currentDrawPoints = [];
 
 // System category colors & icons
@@ -4924,7 +4928,14 @@ async function openInteractive2DAtlas(plateId = 'plate_pharynx_thyroid') {
   // Populate Image
   const imgEl = document.getElementById('atlas-2d-img');
   if (imgEl) {
+    imgEl.onload = () => {
+      syncSvgDimensions();
+      prepare2DAtlasCanvas();
+    };
     imgEl.src = current2DPlateData.image;
+    if (imgEl.complete) {
+      prepare2DAtlasCanvas();
+    }
   }
 
   // Populate SVG Viewbox & Render Polygons
@@ -4985,17 +4996,17 @@ function render2DAtlasPolygons(filterList = null) {
     poly.style.setProperty('--reg-color', sysMeta.color);
 
     poly.addEventListener('mouseenter', () => {
-      if (is2DAtlasDrawingMode) return;
+      if (is2DAtlasDrawingMode || is2DAtlasMagicWandMode) return;
       highlight2DAtlasItemInList(reg.id, true);
     });
 
     poly.addEventListener('mouseleave', () => {
-      if (is2DAtlasDrawingMode) return;
+      if (is2DAtlasDrawingMode || is2DAtlasMagicWandMode) return;
       highlight2DAtlasItemInList(reg.id, false);
     });
 
     poly.addEventListener('click', (e) => {
-      if (is2DAtlasDrawingMode) return;
+      if (is2DAtlasDrawingMode || is2DAtlasMagicWandMode) return;
       e.stopPropagation();
       select2DAtlasRegion(reg.id);
     });
@@ -5189,17 +5200,73 @@ function crossReferenceCurrent2DTo3D() {
   }
 }
 
+// Offscreen Canvas for Pixel Analysis & Contour Tracing
+function prepare2DAtlasCanvas() {
+  const img = document.getElementById('atlas-2d-img');
+  if (!img) return;
+  if (!atlasOffscreenCanvas) {
+    atlasOffscreenCanvas = document.createElement('canvas');
+  }
+  const w = img.naturalWidth || 641;
+  const h = img.naturalHeight || 722;
+  atlasOffscreenCanvas.width = w;
+  atlasOffscreenCanvas.height = h;
+  atlasOffscreenCtx = atlasOffscreenCanvas.getContext('2d', { willReadFrequently: true });
+  atlasOffscreenCtx.drawImage(img, 0, 0, w, h);
+}
+
+function setAtlasDarkLineThreshold(val) {
+  atlasDarkLineThreshold = parseInt(val) || 95;
+}
+
 // Annotation / Draw Mode for New Organ Regions
+function toggle2DAtlasMagicWand() {
+  if (is2DAtlasMagicWandMode) {
+    cancelDrawingMode();
+  } else {
+    cancelDrawingMode();
+    is2DAtlasMagicWandMode = true;
+    currentDrawPoints = [];
+    prepare2DAtlasCanvas();
+
+    const bar = document.getElementById('atlas-draw-toolbar');
+    if (bar) bar.classList.remove('hidden');
+
+    const wandBtn = document.getElementById('btn-atlas-wand');
+    if (wandBtn) wandBtn.classList.add('active');
+
+    const tip = document.getElementById('atlas-draw-tip');
+    if (tip) {
+      tip.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" style="color:#38bdf8;"></i> <span>Click 1 cái vào lòng cơ quan, thuật toán sẽ tự động dò theo viền đen của nét vẽ!</span>';
+    }
+
+    const stage = document.getElementById('atlas-2d-stage');
+    if (stage) stage.style.cursor = 'crosshair';
+  }
+}
+
 function toggle2DAtlasDrawingMode() {
   if (is2DAtlasDrawingMode) {
     cancelDrawingMode();
   } else {
+    cancelDrawingMode();
     is2DAtlasDrawingMode = true;
     currentDrawPoints = [];
+
     const bar = document.getElementById('atlas-draw-toolbar');
     if (bar) bar.classList.remove('hidden');
+
+    const editBtn = document.getElementById('btn-atlas-editor');
+    if (editBtn) editBtn.classList.add('active');
+
+    const tip = document.getElementById('atlas-draw-tip');
+    if (tip) {
+      tip.innerHTML = '<i class="fa-solid fa-pen-nib" style="color:#facc15;"></i> <span>Click chuột liên tiếp quanh mép cơ quan để chấm các đỉnh bao quanh. Bấm "Lưu Vùng" khi xong!</span>';
+    }
+
     const txt = document.getElementById('txt-atlas-editor');
-    if (txt) txt.textContent = 'Đang Vẽ...';
+    if (txt) txt.textContent = 'Đang Chấm...';
+
     const stage = document.getElementById('atlas-2d-stage');
     if (stage) stage.style.cursor = 'crosshair';
   }
@@ -5207,15 +5274,233 @@ function toggle2DAtlasDrawingMode() {
 
 function cancelDrawingMode() {
   is2DAtlasDrawingMode = false;
+  is2DAtlasMagicWandMode = false;
   currentDrawPoints = [];
+
   const bar = document.getElementById('atlas-draw-toolbar');
   if (bar) bar.classList.add('hidden');
+
+  const wandBtn = document.getElementById('btn-atlas-wand');
+  if (wandBtn) wandBtn.classList.remove('active');
+
+  const editBtn = document.getElementById('btn-atlas-editor');
+  if (editBtn) editBtn.classList.remove('active');
+
   const txt = document.getElementById('txt-atlas-editor');
-  if (txt) txt.textContent = 'Vẽ Vùng Mới';
+  if (txt) txt.textContent = 'Chấm Điểm';
+
   const stage = document.getElementById('atlas-2d-stage');
   if (stage) stage.style.cursor = '';
+
   const tempPoly = document.getElementById('temp-draw-polygon');
   if (tempPoly) tempPoly.remove();
+}
+
+// Ramer-Douglas-Peucker polygon simplification algorithm
+function ramerDouglasPeucker(points, epsilon) {
+  if (points.length <= 2) return points;
+  let dmax = 0;
+  let index = 0;
+  const end = points.length - 1;
+  const p1 = points[0];
+  const p2 = points[end];
+
+  const dx = p2[0] - p1[0];
+  const dy = p2[1] - p1[1];
+  const lenSq = dx * dx + dy * dy;
+
+  for (let i = 1; i < end; i++) {
+    const pt = points[i];
+    let dist;
+    if (lenSq === 0) {
+      dist = Math.hypot(pt[0] - p1[0], pt[1] - p1[1]);
+    } else {
+      const t = Math.max(0, Math.min(1, ((pt[0] - p1[0]) * dx + (pt[1] - p1[1]) * dy) / lenSq));
+      const projX = p1[0] + t * dx;
+      const projY = p1[1] + t * dy;
+      dist = Math.hypot(pt[0] - projX, pt[1] - projY);
+    }
+    if (dist > dmax) {
+      index = i;
+      dmax = dist;
+    }
+  }
+
+  if (dmax > epsilon) {
+    const recResults1 = ramerDouglasPeucker(points.slice(0, index + 1), epsilon);
+    const recResults2 = ramerDouglasPeucker(points.slice(index), epsilon);
+    return recResults1.slice(0, recResults1.length - 1).concat(recResults2);
+  } else {
+    return [p1, p2];
+  }
+}
+
+// Automatic Black Ink Contour Detection (1-Click Auto Edge Detect)
+function detectContourFromBlackOutlines(seedX, seedY) {
+  if (!atlasOffscreenCanvas || !atlasOffscreenCtx) {
+    prepare2DAtlasCanvas();
+  }
+  if (!atlasOffscreenCanvas || !atlasOffscreenCtx) return null;
+
+  const w = atlasOffscreenCanvas.width;
+  const h = atlasOffscreenCanvas.height;
+  if (seedX < 0 || seedX >= w || seedY < 0 || seedY >= h) return null;
+
+  const imgData = atlasOffscreenCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  function getLum(x, y) {
+    const idx = (y * w + x) * 4;
+    return 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+  }
+
+  let sx = seedX;
+  let sy = seedY;
+
+  // If clicked directly on a black line, spiral out to find interior color
+  if (getLum(sx, sy) < atlasDarkLineThreshold) {
+    let found = false;
+    for (let r = 1; r <= 12 && !found; r++) {
+      for (let dx = -r; dx <= r && !found; dx++) {
+        for (let dy = -r; dy <= r && !found; dy++) {
+          const nx = sx + dx;
+          const ny = sy + dy;
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            if (getLum(nx, ny) >= atlasDarkLineThreshold + 12) {
+              sx = nx;
+              sy = ny;
+              found = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const startIdx = (sy * w + sx) * 4;
+  const startR = data[startIdx];
+  const startG = data[startIdx + 1];
+  const startB = data[startIdx + 2];
+
+  const visited = new Uint8Array(w * h);
+  const queue = [sx, sy];
+  visited[sy * w + sx] = 1;
+
+  let head = 0;
+  const maxPixels = 100000;
+  let pixelCount = 0;
+
+  let minX = sx, maxX = sx, minY = sy, maxY = sy;
+
+  // BFS Flood Fill bounded by dark ink lines & color variance
+  while (head < queue.length && pixelCount < maxPixels) {
+    const cx = queue[head++];
+    const cy = queue[head++];
+    pixelCount++;
+
+    if (cx < minX) minX = cx;
+    if (cx > maxX) maxX = cx;
+    if (cy < minY) minY = cy;
+    if (cy > maxY) maxY = cy;
+
+    const neighbors = [
+      [cx + 1, cy],
+      [cx - 1, cy],
+      [cx, cy + 1],
+      [cx, cy - 1]
+    ];
+
+    for (let i = 0; i < 4; i++) {
+      const nx = neighbors[i][0];
+      const ny = neighbors[i][1];
+
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+        const nIndex = ny * w + nx;
+        if (visited[nIndex] === 0) {
+          const pIdx = nIndex * 4;
+          const nr = data[pIdx];
+          const ng = data[pIdx + 1];
+          const nb = data[pIdx + 2];
+          const nLum = 0.299 * nr + 0.587 * ng + 0.114 * nb;
+
+          // Stop if pixel is a black/dark contour line
+          if (nLum < atlasDarkLineThreshold) {
+            continue;
+          }
+
+          // Stop if color difference exceeds barrier (prevents leaking across white gaps)
+          const colorDiff = Math.abs(nr - startR) + Math.abs(ng - startG) + Math.abs(nb - startB);
+          if (colorDiff > 125) {
+            continue;
+          }
+
+          visited[nIndex] = 1;
+          queue.push(nx, ny);
+        }
+      }
+    }
+  }
+
+  if (pixelCount < 15) return null;
+
+  // Find a starting perimeter point
+  let startBoundX = -1;
+  let startBoundY = -1;
+  for (let y = minY; y <= maxY && startBoundY === -1; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (visited[y * w + x] === 1) {
+        startBoundX = x;
+        startBoundY = y;
+        break;
+      }
+    }
+  }
+
+  if (startBoundX === -1) return null;
+
+  // Moore-Neighbor boundary tracing
+  const dirs = [
+    [0, -1], [1, -1], [1, 0], [1, 1],
+    [0, 1], [-1, 1], [-1, 0], [-1, -1]
+  ];
+
+  let bx = startBoundX;
+  let by = startBoundY;
+  let dirIdx = 0;
+  const rawContour = [];
+  const maxSteps = 4500;
+  let steps = 0;
+
+  rawContour.push([bx, by]);
+
+  while (steps++ < maxSteps) {
+    let found = false;
+    const checkStart = (dirIdx + 5) % 8;
+    for (let i = 0; i < 8; i++) {
+      const d = (checkStart + i) % 8;
+      const nx = bx + dirs[d][0];
+      const ny = by + dirs[d][1];
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+        if (visited[ny * w + nx] === 1) {
+          bx = nx;
+          by = ny;
+          dirIdx = d;
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found) break;
+    if (bx === startBoundX && by === startBoundY && rawContour.length > 3) {
+      break;
+    }
+    rawContour.push([bx, by]);
+  }
+
+  // Simplify using Ramer-Douglas-Peucker
+  const simplified = ramerDouglasPeucker(rawContour, 2.2);
+  return simplified;
 }
 
 function setup2DAtlasDrawingEvents() {
@@ -5224,7 +5509,8 @@ function setup2DAtlasDrawingEvents() {
   svg._drawEventsAttached = true;
 
   svg.addEventListener('click', (e) => {
-    if (!is2DAtlasDrawingMode) return;
+    if (!is2DAtlasDrawingMode && !is2DAtlasMagicWandMode) return;
+
     const rect = svg.getBoundingClientRect();
     const viewBox = svg.viewBox.baseVal;
     const scaleX = viewBox.width / rect.width;
@@ -5233,11 +5519,23 @@ function setup2DAtlasDrawingEvents() {
     const x = Math.round((e.clientX - rect.left) * scaleX);
     const y = Math.round((e.clientY - rect.top) * scaleY);
 
-    currentDrawPoints.push([x, y]);
-    updateLiveDrawPolygon();
-
-    const countEl = document.getElementById('draw-points-count');
-    if (countEl) countEl.textContent = currentDrawPoints.length;
+    if (is2DAtlasDrawingMode) {
+      currentDrawPoints.push([x, y]);
+      updateLiveDrawPolygon();
+      const countEl = document.getElementById('draw-points-count');
+      if (countEl) countEl.textContent = currentDrawPoints.length;
+    } else if (is2DAtlasMagicWandMode) {
+      // 1-Click Auto Edge Detect from Black Ink Outlines
+      const detected = detectContourFromBlackOutlines(x, y);
+      if (detected && detected.length >= 3) {
+        currentDrawPoints = detected;
+        updateLiveDrawPolygon();
+        const countEl = document.getElementById('draw-points-count');
+        if (countEl) countEl.textContent = currentDrawPoints.length;
+      } else {
+        alert("Không nhận diện được đường viền đen khép kín tại điểm bạn vừa click. Hãy click vào giữa lòng cơ quan hoặc chỉnh lại thanh trượt 'Nét đen' nhé!");
+      }
+    }
   });
 }
 
@@ -5248,7 +5546,7 @@ function updateLiveDrawPolygon() {
   if (!tempPoly) {
     tempPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     tempPoly.setAttribute('id', 'temp-draw-polygon');
-    tempPoly.setAttribute('style', 'fill: rgba(250, 204, 21, 0.25); stroke: #facc15; stroke-width: 3px; stroke-dasharray: 4 2;');
+    tempPoly.setAttribute('style', 'fill: rgba(56, 189, 248, 0.25); stroke: #38bdf8; stroke-width: 3px; stroke-dasharray: 4 2;');
     svg.appendChild(tempPoly);
   }
   const ptsStr = currentDrawPoints.map(p => `${p[0]},${p[1]}`).join(' ');
@@ -5256,9 +5554,15 @@ function updateLiveDrawPolygon() {
 }
 
 function undoLastDrawPoint() {
-  if (!is2DAtlasDrawingMode || currentDrawPoints.length === 0) return;
-  currentDrawPoints.pop();
-  updateLiveDrawPolygon();
+  if (currentDrawPoints.length === 0) return;
+  if (is2DAtlasDrawingMode) {
+    currentDrawPoints.pop();
+    updateLiveDrawPolygon();
+  } else if (is2DAtlasMagicWandMode) {
+    currentDrawPoints = [];
+    const tempPoly = document.getElementById('temp-draw-polygon');
+    if (tempPoly) tempPoly.remove();
+  }
   const countEl = document.getElementById('draw-points-count');
   if (countEl) countEl.textContent = currentDrawPoints.length;
 }
@@ -5335,8 +5639,11 @@ function handleUserAtlasUpload(event) {
       }
 
       render2DAtlasDirectory([]);
-      toggle2DAtlasDrawingMode();
-      alert("Đã tải ảnh lên thành công!\nỨng dụng đã tự động bật 'Chế độ vẽ viền'.\nHãy click các điểm quanh mép cơ quan trên ảnh để tạo viền phát sáng nhé!");
+      setTimeout(() => {
+        prepare2DAtlasCanvas();
+        toggle2DAtlasMagicWand();
+      }, 150);
+      alert("Đã tải ảnh lên thành công!\nỨng dụng đã tự động kích hoạt 'Đũa Thần Bắt Viền Đen'.\nBạn chỉ cần click 1 nhát vào lòng cơ quan trên ảnh, hệ thống sẽ tự động dò theo đường viền đen của nét vẽ!");
     };
     customImg.src = dataUrl;
   };
