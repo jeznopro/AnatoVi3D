@@ -26,7 +26,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     daemon_threads = True
-    allow_reuse_address = True
+    allow_reuse_address = False
 
 def run():
     os.chdir(DIRECTORY)

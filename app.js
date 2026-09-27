@@ -292,6 +292,34 @@ async function loadAnatomyData() {
         }
       }
     }
+
+    // Also fetch and merge the authoritative Netter Vietnam dictionary
+    try {
+      const netterRes = await fetch(`data/netter_vietnam_dictionary.json?t=${cacheBuster}`);
+      if (netterRes.ok) {
+        const netterJson = await netterRes.json();
+        if (netterJson.vi) {
+          for (let k in netterJson.vi) {
+            const kLow = k.toLowerCase().trim();
+            NETTER_VIETNAM_3D_DICTIONARY[kLow] = netterJson.vi[k];
+            if (anatomyData && anatomyData._lowerTranslations) {
+              anatomyData._lowerTranslations[kLow] = netterJson.vi[k];
+            }
+          }
+        }
+        if (netterJson.latin) {
+          for (let k in netterJson.latin) {
+            const kLow = k.toLowerCase().trim();
+            NETTER_LATIN_3D_DICTIONARY[kLow] = netterJson.latin[k];
+            if (anatomyData && anatomyData._lowerLatin) {
+              anatomyData._lowerLatin[kLow] = netterJson.latin[k];
+            }
+          }
+        }
+      }
+    } catch (ne) {
+      console.warn("Could not fetch netter_vietnam_dictionary.json:", ne);
+    }
   } catch (e) {
     console.warn("Could not fetch anatomy_data.json:", e);
   }
@@ -1085,6 +1113,14 @@ function translateToVietnameseMedical(name) {
   if (!name) return '';
   const raw = name.trim();
 
+  const rawLow = raw.toLowerCase().trim();
+  if (NETTER_VIETNAM_3D_DICTIONARY[rawLow]) {
+    return NETTER_VIETNAM_3D_DICTIONARY[rawLow];
+  }
+  if (anatomyData && anatomyData._lowerTranslations && anatomyData._lowerTranslations[rawLow]) {
+    return anatomyData._lowerTranslations[rawLow];
+  }
+
   // Extract side (.l, .r, _l, _r, left, right)
   let side = null;
   if (/\.l$|_l$|\s+left$/i.test(raw) || /\s+l$/i.test(raw) || /\bleft\b/i.test(raw)) {
@@ -1099,6 +1135,13 @@ function translateToVietnameseMedical(name) {
   clean = clean.replace(/\b(left|right)\b/gi, '').replace(/\s+[lr]$/gi, '').replace(/[()]/g, '').trim();
   const low = clean.toLowerCase();
 
+  if (low === 'atrium') {
+    return side ? `Tâm nhĩ (${side})` : 'Tâm nhĩ';
+  }
+  if (low === 'ventricle') {
+    return side ? `Tâm thất (${side})` : 'Tâm thất';
+  }
+
   // 1. Direct Netter Vietnam dictionary match (GS. Nguyễn Quang Quyền)
   if (NETTER_VIETNAM_3D_DICTIONARY[low]) {
     let vi = NETTER_VIETNAM_3D_DICTIONARY[low];
@@ -1108,7 +1151,25 @@ function translateToVietnameseMedical(name) {
     return vi;
   }
 
-  // 2. Existing MEDICAL_TRANSLATIONS dictionary match
+  // 2. Authoritative Database Match (anatomyData.translations - 71,308 terms)
+  if (anatomyData) {
+    if (anatomyData._lowerTranslations && anatomyData._lowerTranslations[low]) {
+      let vi = anatomyData._lowerTranslations[low];
+      if (side && !vi.includes('trái') && !vi.includes('phải')) {
+        vi += ` (${side})`;
+      }
+      return vi;
+    }
+    if (anatomyData.translations && anatomyData.translations[clean]) {
+      let vi = anatomyData.translations[clean];
+      if (side && !vi.includes('trái') && !vi.includes('phải')) {
+        vi += ` (${side})`;
+      }
+      return vi;
+    }
+  }
+
+  // 3. Existing MEDICAL_TRANSLATIONS dictionary match
   if (MEDICAL_TRANSLATIONS[low]) {
     let vi = MEDICAL_TRANSLATIONS[low].vi;
     if (side && !vi.includes('trái') && !vi.includes('phải')) {
@@ -1283,6 +1344,14 @@ function translateToLatinMedical(name) {
   if (!name) return '';
   const raw = name.trim();
 
+  const rawLow = raw.toLowerCase().trim();
+  if (NETTER_LATIN_3D_DICTIONARY[rawLow]) {
+    return NETTER_LATIN_3D_DICTIONARY[rawLow];
+  }
+  if (anatomyData && anatomyData._lowerLatin && anatomyData._lowerLatin[rawLow]) {
+    return anatomyData._lowerLatin[rawLow];
+  }
+
   let side = null;
   if (/\.l$|_l$|\s+left$/i.test(raw) || /\s+l$/i.test(raw) || /\bleft\b/i.test(raw)) {
     side = 'sinister';
@@ -1294,6 +1363,13 @@ function translateToLatinMedical(name) {
   clean = clean.replace(/_/g, ' ').replace(/\s+\d+$/, '').trim();
   clean = clean.replace(/\b(left|right)\b/gi, '').replace(/\s+[lr]$/gi, '').replace(/[()]/g, '').trim();
   const low = clean.toLowerCase();
+
+  if (low === 'atrium') {
+    return side ? `Atrium (${side})` : 'Atrium';
+  }
+  if (low === 'ventricle') {
+    return side ? `Ventriculus (${side})` : 'Ventriculus';
+  }
 
   if (NETTER_LATIN_3D_DICTIONARY[low]) {
     let lat = NETTER_LATIN_3D_DICTIONARY[low];
