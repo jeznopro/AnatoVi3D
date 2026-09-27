@@ -3535,7 +3535,7 @@
         </div>
 
         <div class="atlas-2d-viewport" id="atlas-2d-viewport">
-          <img src="assets/atlas/plate_pharynx_thyroid.png" alt="Anatomical Plate" class="atlas-2d-img" id="atlas-2d-img" onload="syncSvgDimensions()">
+          <img src="assets/atlas/plate_pharynx_thyroid.png" alt="Anatomical Plate" class="atlas-2d-img" id="atlas-2d-img" onload="if(window.syncSvgDimensions)syncSvgDimensions()">
           <svg class="atlas-2d-svg-overlay" id="atlas-2d-svg" viewBox="0 0 641 722" preserveAspectRatio="none">
             <!-- Polygons injected dynamically by app.js -->
           </svg>
@@ -3918,6 +3918,6 @@
   <script src="libs/GLTFLoader.js?v=20260910_v3"></script>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260925_magicwand_v1"></script>
+  <script src="app.js?v=20260927_fix_syntax_v1"></script>
 </body>
 </html>
