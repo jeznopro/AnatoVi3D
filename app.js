@@ -1489,6 +1489,9 @@ function loadModelFile(file) {
           MODEL_FILES[file].loading = false;
 
           applyAllSystemsVisibility();
+          if (typeof isExplodedViewActive !== 'undefined' && isExplodedViewActive) {
+            recomputeAllExplodedTargetPositions();
+          }
         } catch (procErr) {
           console.error(`Error processing scene for ${file}:`, procErr);
           MODEL_FILES[file].loaded = true;
@@ -2363,7 +2366,6 @@ function handleExplodeSlider(val) {
   targetExplodeAmount = amount;
   currentExplodeAmount = amount;
   updateExplodeSliderUI(amount);
-  recomputeAllExplodedTargetPositions();
   applyExplodeAmountToMeshes(currentExplodeAmount);
 }
 
@@ -2374,7 +2376,6 @@ function setExplodeAmount(amount) {
 
 function animateExplodeTo(amount) {
   setExplodeAmount(amount);
-  recomputeAllExplodedTargetPositions();
 }
 
 function updateExplodeSliderUI(val) {
@@ -2401,6 +2402,7 @@ function setExplodeMode(mode) {
 
   recomputeAllExplodedTargetPositions();
   applyExplodeAmountToMeshes(currentExplodeAmount);
+  fitExplodedCamera();
 }
 
 function toggleExplodeAutoPlay() {
@@ -2424,43 +2426,84 @@ function updateExplodePlayBtnUI() {
 
 function fitExplodedCamera() {
   if (explodeMode === 'disassembly') {
-    smoothMoveCamera(new THREE.Vector3(-0.10, 0.88, 3.6), new THREE.Vector3(0.0, 0.82, 0));
+    smoothMoveCamera(new THREE.Vector3(0.0, 0.88, 3.6), new THREE.Vector3(0.0, 0.82, 0));
   } else if (explodeMode === 'sidebyside') {
-    smoothMoveCamera(new THREE.Vector3(0.6, 0.90, 4.4), new THREE.Vector3(0.6, 0.85, 0));
+    const box = new THREE.Box3();
+    for (let i = 0; i < allMeshes.length; i++) {
+      if (allMeshes[i].visible) box.expandByObject(allMeshes[i]);
+    }
+    const c = box.isEmpty() ? new THREE.Vector3(0, 0.85, 0) : box.getCenter(new THREE.Vector3());
+    const sz = box.isEmpty() ? 2.5 : box.getSize(new THREE.Vector3()).length();
+    smoothMoveCamera(new THREE.Vector3(c.x, c.y + 0.05, Math.max(3.2, sz * 1.05)), new THREE.Vector3(c.x, c.y, 0));
   } else {
     smoothMoveCamera(new THREE.Vector3(0, 0.85, 3.2), new THREE.Vector3(0, 0.85, 0));
   }
 }
 
 function recomputeAllExplodedTargetPositions() {
+  if (!allMeshes || allMeshes.length === 0) return;
+
+  // 1. Temporarily restore all meshes and roots to unexploded canonical state
+  // to ensure bounding boxes and matrixWorld are calculated precisely on the original anatomy
   allMeshes.forEach(mesh => {
-    if (!mesh.userData.origPos) {
+    if (mesh.userData.origPos) {
+      mesh.position.copy(mesh.userData.origPos);
+    } else {
       mesh.userData.origPos = mesh.position.clone();
     }
-    const orig = mesh.userData.origPos;
+  });
+
+  ['models/skeleton.glb', 'models/joints.glb', 'models/muscles.glb', 'models/cardio.glb', 'models/visceral.glb', 'models/nervous.glb'].forEach(f => {
+    if (MODEL_FILES[f]?.root) {
+      MODEL_FILES[f].root.position.set(0, 0, 0);
+    }
+  });
+
+  // 2. CRUCIAL: Run updateMatrixWorld(true) so all parent transforms, scales, and matrices are up to date!
+  scene.updateMatrixWorld(true);
+
+  // 3. Compute dynamic reference bounds and center in world space
+  const visibleBox = new THREE.Box3();
+  allMeshes.forEach(m => {
+    if (m.visible) visibleBox.expandByObject(m);
+  });
+  if (visibleBox.isEmpty()) {
+    allMeshes.forEach(m => visibleBox.expandByObject(m));
+  }
+  const modelCenter = visibleBox.getCenter(new THREE.Vector3());
+  const boxSize = visibleBox.getSize(new THREE.Vector3());
+  // Dynamically size EXPLODE_DISTANCE from model dimensions, never hardcoded
+  const dynamicExplodeDist = Math.max(0.6, boxSize.length() * 0.32);
+
+  const D_world = new THREE.Vector3();
+
+  // 4a. Calculate target world displacement for every mesh
+  for (let i = 0; i < allMeshes.length; i++) {
+    const mesh = allMeshes[i];
     const name = (mesh.userData.cleanName || mesh.name || '').toLowerCase();
     const parentName = (mesh.parent?.name || '').toLowerCase();
     const fullName = (name + ' ' + parentName).toLowerCase();
     const src = (mesh.userData.sourceFile || '').toLowerCase();
 
-    let dx = 0, dy = 0, dz = 0;
+    // Get true geometric center of mesh in world space (independent of pivot)
+    const c = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+    mesh.userData._worldCenter = c;
+    const D = new THREE.Vector3(0, 0, 0);
 
     if (explodeMode === 'disassembly') {
-      // Base system separation (Muscles at -0.65, Skeleton at +0.65) is smoothly driven on MODEL_FILES roots
-      if (src.includes('skeleton')) {
-        let sx = 1, sy = 1, sz = 1;
-        let curr = mesh.parent;
-        const skelRoot = MODEL_FILES['models/skeleton.glb']?.root;
-        while (curr && curr !== skelRoot && curr !== scene) {
-          if (curr.scale) {
-            if (curr.scale.x < 0) sx *= -1;
-            if (curr.scale.y < 0) sy *= -1;
-            if (curr.scale.z < 0) sz *= -1;
-          }
-          curr = curr.parent;
+      // Anatomical Disassembly Mode (Muscles on Left, Skeleton on Right, Body Regions Disassembled)
+      if (src.includes('muscles')) {
+        // Muscular figure separated to the left
+        D.set(-0.65, 0, 0);
+        // Cranial aponeurosis/galea elevated slightly
+        if (['epicranial', 'galea', 'temporoparietalis', 'occipitofrontalis'].some(k => fullName.includes(k))) {
+          D.y += 0.16;
         }
+      } else if (src.includes('skeleton')) {
+        // Skeletal figure separated to the right
+        D.set(0.65, 0, 0);
 
-        const isLeft = fullName.includes('.l') || fullName.includes('left') || (mesh.parent && mesh.parent.position && mesh.parent.position.x > 0);
+        const isLeft = fullName.includes('.l') || fullName.includes('left') || c.x > 0;
         const isSkull = ['parietal', 'frontal', 'occipital', 'temporal', 'sphenoid', 'ethmoid', 'mandible', 'maxilla', 'nasal', 'lacrimal', 'zygomatic', 'palatine', 'vomer', 'incus', 'malleus', 'stapes', 'hyoid', 'tooth', 'teeth', 'incisor', 'canine', 'premolar', 'molar', 'concha', 'calvaria', 'cranium', 'head of mandible', 'alar cartilage', 'cricoid', 'thyroid cartilage', 'arytenoid', 'corniculate'].some(k => fullName.includes(k));
         const isRibs = ['rib', 'costal', 'sternum', 'manubrium', 'xiphoid'].some(k => fullName.includes(k));
         const isSpine = ['vertebra', 'atlas', 'axis', 'cervical', 'thoracic vertebra', 'lumbar vertebra', 'sacrum', 'coccyx'].some(k => fullName.includes(k));
@@ -2468,116 +2511,106 @@ function recomputeAllExplodedTargetPositions() {
         const isUpperLimb = ['clavicle', 'scapula', 'humerus', 'radius', 'ulna', 'carpal', 'metacarpal', 'trapezium', 'trapezoid', 'capitate', 'hamate', 'pisiform', 'triquetrum', 'lunate', 'scaphoid'].some(k => fullName.includes(k)) || (fullName.includes('phalanx') && fullName.includes('hand'));
 
         if (isSkull) {
-          dy = 0.38 * sy;
-          dz = 0.05 * sz;
+          D.y += 0.38;
+          D.z += 0.05;
         } else if (isRibs) {
-          dz = 0.30 * sz;
-          dx = -0.10 * sx;
-          dy = 0.04 * sy;
+          D.z += 0.30;
+          D.x -= 0.10;
+          D.y += 0.04;
         } else if (isSpine) {
-          dz = -0.28 * sz;
-          dx = 0.12 * sx;
+          D.z -= 0.28;
+          D.x += 0.12;
         } else if (isPelvis) {
-          dz = -0.22 * sz;
-          dx = 0.12 * sx;
-          dy = -0.02 * sy;
+          D.z -= 0.22;
+          D.x += 0.12;
+          D.y -= 0.02;
         } else if (isUpperLimb) {
-          dx = (isLeft ? 0.26 : -0.26) * sx;
-          dz = -0.05 * sz;
+          D.x += isLeft ? 0.26 : -0.26;
+          D.z -= 0.05;
         }
-        // Legs (Femur, Tibia, Fibula, Foot) stay firmly standing at dx=0, dy=0, dz=0 relative to skeleton root
-      } else if (src.includes('muscles')) {
-        let sy = 1;
-        let curr = mesh.parent;
-        const muscRoot = MODEL_FILES['models/muscles.glb']?.root;
-        while (curr && curr !== muscRoot && curr !== scene) {
-          if (curr.scale && curr.scale.y < 0) sy *= -1;
-          curr = curr.parent;
-        }
-        if (['epicranial', 'galea', 'temporoparietalis', 'occipitofrontalis'].some(k => fullName.includes(k))) {
-          dy = 0.16 * sy;
-        }
+        // Lower limbs (Femur, Tibia, Fibula, Foot) stay standing at base (+0.65, 0, 0)
       } else if (src.includes('joints')) {
-        let sx = 1, sy = 1, sz = 1;
-        let curr = mesh.parent;
-        const jntRoot = MODEL_FILES['models/joints.glb']?.root;
-        while (curr && curr !== jntRoot && curr !== scene) {
-          if (curr.scale) {
-            if (curr.scale.x < 0) sx *= -1;
-            if (curr.scale.y < 0) sy *= -1;
-            if (curr.scale.z < 0) sz *= -1;
-          }
-          curr = curr.parent;
-        }
+        D.set(0.65, 0, 0);
         if (fullName.includes('costo') || fullName.includes('sterno')) {
-          dz = 0.30 * sz;
-          dx = -0.10 * sx;
-          dy = 0.04 * sy;
+          D.z += 0.30;
+          D.x -= 0.10;
+          D.y += 0.04;
         } else if (fullName.includes('vertebra') || fullName.includes('disc') || fullName.includes('sacro')) {
-          dz = -0.28 * sz;
-          dx = 0.12 * sx;
+          D.z -= 0.28;
+          D.x += 0.12;
         }
       }
     } else if (explodeMode === 'sidebyside') {
-      // In side-by-side mode, models are linearly separated by their roots; meshes remain anatomically cohesive
-      dx = 0; dy = 0; dz = 0;
+      // Parallel System Breakdown along X axis
+      if (src.includes('muscles')) D.set(-1.20, 0, 0);
+      else if (src.includes('skeleton') || src.includes('joints')) D.set(-0.30, 0, 0);
+      else if (src.includes('cardio')) D.set(0.60, 0, 0);
+      else if (src.includes('visceral')) D.set(1.50, 0, 0);
+      else if (src.includes('nervous')) D.set(2.40, 0, 0);
     } else if (explodeMode === 'radial') {
-      // 360-degree outward explosion from body center (0, 0.85, 0)
-      const centerY = 0.85;
-      const posX = mesh.parent?.position?.x || orig.x;
-      const posY = mesh.parent?.position?.y || orig.y;
-      const posZ = mesh.parent?.position?.z || orig.z;
-      const rx = posX;
-      const ry = (posY - centerY) * 0.4;
-      const rz = posZ || 0.1;
-      const len = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1.0;
-      const dist = 0.65;
-      dx = (rx / len) * dist;
-      dy = (ry / len) * dist;
-      dz = (rz / len) * dist;
+      // 360-Degree Radial Blast Outward
+      const dir = c.clone().sub(modelCenter);
+      dir.y *= 0.5; // Cylindrical emphasis so models don't shoot straight up into the ceiling
+      if (dir.lengthSq() < 1e-8) {
+        dir.set(0, 1, 0); // Avoid division by zero or NaN
+      }
+      dir.normalize();
+
+      const depthFactor = mesh.userData.muscleLayer ? (1 + mesh.userData.muscleLayer * 0.15) : 1.0;
+      const dist = dynamicExplodeDist * depthFactor;
+      D.copy(dir).multiplyScalar(dist);
     }
 
-    mesh.userData.explodedTargetPos = new THREE.Vector3(
-      orig.x + dx,
-      orig.y + dy,
-      orig.z + dz
-    );
-  });
+    mesh.userData.targetDWorld = D;
+  }
+
+  // 4b. Convert target world displacement to parent local offset, taking into account nested parent meshes
+  for (let i = 0; i < allMeshes.length; i++) {
+    const mesh = allMeshes[i];
+    const c = mesh.userData._worldCenter;
+    let relativeD = mesh.userData.targetDWorld;
+
+    // Check if any ancestor is also a displaced mesh
+    let ancestor = mesh.parent;
+    while (ancestor && ancestor !== scene) {
+      if (ancestor.isMesh && ancestor.userData && ancestor.userData.targetDWorld) {
+        // Net displacement relative to the parent mesh that is already moving
+        relativeD = mesh.userData.targetDWorld.clone().sub(ancestor.userData.targetDWorld);
+        break;
+      }
+      ancestor = ancestor.parent;
+    }
+
+    // Convert world displacement to parent local offset (canceling parent rotation, scale, negative scale)
+    if (mesh.parent) {
+      const p0 = mesh.parent.worldToLocal(c.clone());
+      const p1 = mesh.parent.worldToLocal(c.clone().add(relativeD));
+      mesh.userData.explodeLocalOffset = p1.sub(p0);
+    } else {
+      mesh.userData.explodeLocalOffset = relativeD.clone();
+    }
+  }
+
+  // 5. If exploded view is currently open with non-zero amount, re-apply immediately
+  if (currentExplodeAmount > 0) {
+    applyExplodeAmountToMeshes(currentExplodeAmount);
+  }
 }
 
 function applyExplodeAmountToMeshes(amount) {
-  if (explodeMode === 'disassembly') {
-    if (MODEL_FILES['models/muscles.glb']?.root) {
-      MODEL_FILES['models/muscles.glb'].root.position.x = -0.65 * amount;
-    }
-    if (MODEL_FILES['models/skeleton.glb']?.root) {
-      MODEL_FILES['models/skeleton.glb'].root.position.x = 0.65 * amount;
-    }
-    if (MODEL_FILES['models/joints.glb']?.root) {
-      MODEL_FILES['models/joints.glb'].root.position.x = 0.65 * amount;
-    }
-    if (MODEL_FILES['models/cardio.glb']?.root) MODEL_FILES['models/cardio.glb'].root.position.x = 0;
-    if (MODEL_FILES['models/visceral.glb']?.root) MODEL_FILES['models/visceral.glb'].root.position.x = 0;
-    if (MODEL_FILES['models/nervous.glb']?.root) MODEL_FILES['models/nervous.glb'].root.position.x = 0;
-  } else if (explodeMode === 'sidebyside') {
-    if (MODEL_FILES['models/muscles.glb']?.root) MODEL_FILES['models/muscles.glb'].root.position.x = -1.2 * amount;
-    if (MODEL_FILES['models/skeleton.glb']?.root) MODEL_FILES['models/skeleton.glb'].root.position.x = -0.3 * amount;
-    if (MODEL_FILES['models/joints.glb']?.root) MODEL_FILES['models/joints.glb'].root.position.x = -0.3 * amount;
-    if (MODEL_FILES['models/cardio.glb']?.root) MODEL_FILES['models/cardio.glb'].root.position.x = 0.6 * amount;
-    if (MODEL_FILES['models/visceral.glb']?.root) MODEL_FILES['models/visceral.glb'].root.position.x = 1.5 * amount;
-    if (MODEL_FILES['models/nervous.glb']?.root) MODEL_FILES['models/nervous.glb'].root.position.x = 2.4 * amount;
-  } else {
-    // Radial: Reset roots to 0 so all meshes radiate outward from common center
-    ['models/skeleton.glb', 'models/joints.glb', 'models/muscles.glb', 'models/cardio.glb', 'models/visceral.glb', 'models/nervous.glb'].forEach(f => {
-      if (MODEL_FILES[f]?.root) MODEL_FILES[f].root.position.x = 0;
-    });
-  }
-
-  allMeshes.forEach(mesh => {
-    if (mesh.userData.origPos && mesh.userData.explodedTargetPos) {
-      mesh.position.lerpVectors(mesh.userData.origPos, mesh.userData.explodedTargetPos, amount);
+  // Ensure model roots remain anchored at origin (0, 0, 0)
+  ['models/skeleton.glb', 'models/joints.glb', 'models/muscles.glb', 'models/cardio.glb', 'models/visceral.glb', 'models/nervous.glb'].forEach(f => {
+    if (MODEL_FILES[f]?.root) {
+      MODEL_FILES[f].root.position.set(0, 0, 0);
     }
   });
+
+  for (let i = 0; i < allMeshes.length; i++) {
+    const mesh = allMeshes[i];
+    if (mesh.userData.origPos && mesh.userData.explodeLocalOffset) {
+      mesh.position.copy(mesh.userData.origPos).addScaledVector(mesh.userData.explodeLocalOffset, amount);
+    }
+  }
 }
 
 function updateExplodedViewAnimation() {

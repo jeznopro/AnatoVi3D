@@ -86,7 +86,12 @@ async def main():
         # 6. Test Collapse Back to 0%
         print("Testing collapse to 0% (Thu Gọn)...")
         await page.evaluate("animateExplodeTo(0.0)")
-        await asyncio.sleep(2.5)
+        for _ in range(40):
+            amt = await page.evaluate("typeof currentExplodeAmount !== 'undefined' ? currentExplodeAmount : 0")
+            if amt <= 0.02:
+                break
+            await asyncio.sleep(0.2)
+        await asyncio.sleep(0.5)
         path_collapsed = "C:/Users/MinhTriet/.gemini/antigravity/brain/6f55e3b5-6c58-4bee-a69a-c949ecfe66f4/exploded_view_collapsed.png"
         await page.screenshot(path=path_collapsed)
         print(f"Captured {path_collapsed}")
