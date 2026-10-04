@@ -256,6 +256,11 @@ function animate() {
     updateOutlinesAnimation();
   }
 
+  // 3D Exploded View & Disassembly Animation
+  if (typeof updateExplodedViewAnimation === 'function') {
+    updateExplodedViewAnimation();
+  }
+
   controls.update();
 
   if (isAutoRotating) {
@@ -1449,13 +1454,15 @@ function getCeliacStructureInfo(meshName, landmarkId) {
 }
 
 function loadModelFile(file) {
-  return new Promise((resolve) => {
-    if (MODEL_FILES[file].loaded) {
-      resolve();
-      return;
-    }
-    MODEL_FILES[file].loading = true;
+  if (MODEL_FILES[file].loaded) {
+    return Promise.resolve();
+  }
+  if (MODEL_FILES[file].loadingPromise) {
+    return MODEL_FILES[file].loadingPromise;
+  }
 
+  MODEL_FILES[file].loading = true;
+  MODEL_FILES[file].loadingPromise = new Promise((resolve) => {
     const loader = new THREE.GLTFLoader();
     loader.load(
       file,
@@ -1476,6 +1483,7 @@ function loadModelFile(file) {
           }
 
           scene.add(root);
+          MODEL_FILES[file].root = root;
 
           MODEL_FILES[file].loaded = true;
           MODEL_FILES[file].loading = false;
@@ -1497,6 +1505,8 @@ function loadModelFile(file) {
       }
     );
   });
+
+  return MODEL_FILES[file].loadingPromise;
 }
 
 // Classify Meshes into 12 Systems, Layers, and Medical Materials with Strict Medical Accuracy
@@ -2058,6 +2068,8 @@ function setupMesh(mesh, sourceFile) {
     viName: viName,
     latinName: latinName,
     enName: cleanName,
+    sourceFile: sourceFile,
+    origPos: mesh.position.clone(),
     system: targetSystem,
     muscleLayer: muscleLayer,
     vesselLayer: vesselLayer,
@@ -2292,6 +2304,300 @@ function updateOutlinesAnimation() {
       item.material.uniforms.timeVal.value = t;
     }
   });
+}
+
+// ========================================================
+// 3D EXPLODED VIEW & ANATOMY DISASSEMBLY ENGINE
+// ========================================================
+let isExplodedViewActive = false;
+let currentExplodeAmount = 0.0;
+let targetExplodeAmount = 0.0;
+let explodeMode = 'disassembly'; // 'disassembly' | 'sidebyside' | 'radial'
+let isExplodeAutoPlaying = false;
+let explodePlaySpeed = 0.012;
+let explodePlayDirection = 1;
+
+function toggleExplodedView(forceState) {
+  if (forceState !== undefined) {
+    isExplodedViewActive = forceState;
+  } else {
+    isExplodedViewActive = !isExplodedViewActive;
+  }
+
+  const panel = document.getElementById('exploded-view-panel');
+  const btn = document.getElementById('btn-explode-mode');
+  if (btn) btn.classList.toggle('active', isExplodedViewActive);
+
+  if (isExplodedViewActive) {
+    if (panel) panel.classList.remove('hidden');
+
+    // Automatically enable both Skeletal and Muscular so user sees both figures like reference image
+    if (!SYSTEMS_CONFIG.skeletal.active) {
+      toggleSystem('skeletal');
+    }
+    if (!SYSTEMS_CONFIG.muscular.active) {
+      toggleMuscularSystem();
+    }
+
+    // Ensure models are loaded, then explode smoothly
+    Promise.all([
+      loadModelFile('models/skeleton.glb'),
+      loadModelFile('models/muscles.glb')
+    ]).then(() => {
+      // Re-apply visibility so both systems appear
+      applyAllSystemsVisibility();
+      recomputeAllExplodedTargetPositions();
+      animateExplodeTo(1.0);
+      fitExplodedCamera();
+    });
+  } else {
+    if (panel) panel.classList.add('hidden');
+    isExplodeAutoPlaying = false;
+    updateExplodePlayBtnUI();
+    animateExplodeTo(0.0);
+  }
+}
+
+function handleExplodeSlider(val) {
+  const amount = parseFloat(val) / 100;
+  targetExplodeAmount = amount;
+  currentExplodeAmount = amount;
+  updateExplodeSliderUI(amount);
+  recomputeAllExplodedTargetPositions();
+  applyExplodeAmountToMeshes(currentExplodeAmount);
+}
+
+function setExplodeAmount(amount) {
+  targetExplodeAmount = Math.max(0, Math.min(1, amount));
+  updateExplodeSliderUI(targetExplodeAmount);
+}
+
+function animateExplodeTo(amount) {
+  setExplodeAmount(amount);
+  recomputeAllExplodedTargetPositions();
+}
+
+function updateExplodeSliderUI(val) {
+  const pct = Math.round(val * 100);
+  const slider = document.getElementById('explode-slider');
+  const badge = document.getElementById('explode-val-badge');
+  if (slider) slider.value = pct;
+  if (badge) badge.textContent = `${pct}%`;
+}
+
+function setExplodeMode(mode) {
+  explodeMode = mode;
+  ['disassembly', 'sidebyside', 'radial'].forEach(m => {
+    const el = document.getElementById(`mode-${m}`);
+    if (el) el.classList.toggle('active', m === mode);
+  });
+
+  const badge = document.getElementById('exploded-mode-badge');
+  if (badge) {
+    if (mode === 'disassembly') badge.textContent = 'Bung Giải Phẫu';
+    else if (mode === 'sidebyside') badge.textContent = 'Tách Song Song';
+    else if (mode === 'radial') badge.textContent = 'Bung Tỏa Tròn 360°';
+  }
+
+  recomputeAllExplodedTargetPositions();
+  applyExplodeAmountToMeshes(currentExplodeAmount);
+}
+
+function toggleExplodeAutoPlay() {
+  isExplodeAutoPlaying = !isExplodeAutoPlaying;
+  updateExplodePlayBtnUI();
+}
+
+function updateExplodePlayBtnUI() {
+  const btn = document.getElementById('btn-explode-play');
+  const txt = document.getElementById('txt-explode-play');
+  if (btn && txt) {
+    if (isExplodeAutoPlaying) {
+      btn.classList.add('primary');
+      btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Tạm Dừng</span>`;
+    } else {
+      btn.classList.remove('primary');
+      btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Trình Diễn</span>`;
+    }
+  }
+}
+
+function fitExplodedCamera() {
+  if (explodeMode === 'disassembly') {
+    smoothMoveCamera(new THREE.Vector3(-0.10, 0.88, 3.6), new THREE.Vector3(0.0, 0.82, 0));
+  } else if (explodeMode === 'sidebyside') {
+    smoothMoveCamera(new THREE.Vector3(0.6, 0.90, 4.4), new THREE.Vector3(0.6, 0.85, 0));
+  } else {
+    smoothMoveCamera(new THREE.Vector3(0, 0.85, 3.2), new THREE.Vector3(0, 0.85, 0));
+  }
+}
+
+function recomputeAllExplodedTargetPositions() {
+  allMeshes.forEach(mesh => {
+    if (!mesh.userData.origPos) {
+      mesh.userData.origPos = mesh.position.clone();
+    }
+    const orig = mesh.userData.origPos;
+    const name = (mesh.userData.cleanName || mesh.name || '').toLowerCase();
+    const parentName = (mesh.parent?.name || '').toLowerCase();
+    const fullName = (name + ' ' + parentName).toLowerCase();
+    const src = (mesh.userData.sourceFile || '').toLowerCase();
+
+    let dx = 0, dy = 0, dz = 0;
+
+    if (explodeMode === 'disassembly') {
+      // Base system separation (Muscles at -0.65, Skeleton at +0.65) is smoothly driven on MODEL_FILES roots
+      if (src.includes('skeleton')) {
+        let sx = 1, sy = 1, sz = 1;
+        let curr = mesh.parent;
+        const skelRoot = MODEL_FILES['models/skeleton.glb']?.root;
+        while (curr && curr !== skelRoot && curr !== scene) {
+          if (curr.scale) {
+            if (curr.scale.x < 0) sx *= -1;
+            if (curr.scale.y < 0) sy *= -1;
+            if (curr.scale.z < 0) sz *= -1;
+          }
+          curr = curr.parent;
+        }
+
+        const isLeft = fullName.includes('.l') || fullName.includes('left') || (mesh.parent && mesh.parent.position && mesh.parent.position.x > 0);
+        const isSkull = ['parietal', 'frontal', 'occipital', 'temporal', 'sphenoid', 'ethmoid', 'mandible', 'maxilla', 'nasal', 'lacrimal', 'zygomatic', 'palatine', 'vomer', 'incus', 'malleus', 'stapes', 'hyoid', 'tooth', 'teeth', 'incisor', 'canine', 'premolar', 'molar', 'concha', 'calvaria', 'cranium', 'head of mandible', 'alar cartilage', 'cricoid', 'thyroid cartilage', 'arytenoid', 'corniculate'].some(k => fullName.includes(k));
+        const isRibs = ['rib', 'costal', 'sternum', 'manubrium', 'xiphoid'].some(k => fullName.includes(k));
+        const isSpine = ['vertebra', 'atlas', 'axis', 'cervical', 'thoracic vertebra', 'lumbar vertebra', 'sacrum', 'coccyx'].some(k => fullName.includes(k));
+        const isPelvis = ['ilium', 'ischium', 'pubis', 'hip bone', 'coxal', 'pelvis'].some(k => fullName.includes(k));
+        const isUpperLimb = ['clavicle', 'scapula', 'humerus', 'radius', 'ulna', 'carpal', 'metacarpal', 'trapezium', 'trapezoid', 'capitate', 'hamate', 'pisiform', 'triquetrum', 'lunate', 'scaphoid'].some(k => fullName.includes(k)) || (fullName.includes('phalanx') && fullName.includes('hand'));
+
+        if (isSkull) {
+          dy = 0.38 * sy;
+          dz = 0.05 * sz;
+        } else if (isRibs) {
+          dz = 0.30 * sz;
+          dx = -0.10 * sx;
+          dy = 0.04 * sy;
+        } else if (isSpine) {
+          dz = -0.28 * sz;
+          dx = 0.12 * sx;
+        } else if (isPelvis) {
+          dz = -0.22 * sz;
+          dx = 0.12 * sx;
+          dy = -0.02 * sy;
+        } else if (isUpperLimb) {
+          dx = (isLeft ? 0.26 : -0.26) * sx;
+          dz = -0.05 * sz;
+        }
+        // Legs (Femur, Tibia, Fibula, Foot) stay firmly standing at dx=0, dy=0, dz=0 relative to skeleton root
+      } else if (src.includes('muscles')) {
+        let sy = 1;
+        let curr = mesh.parent;
+        const muscRoot = MODEL_FILES['models/muscles.glb']?.root;
+        while (curr && curr !== muscRoot && curr !== scene) {
+          if (curr.scale && curr.scale.y < 0) sy *= -1;
+          curr = curr.parent;
+        }
+        if (['epicranial', 'galea', 'temporoparietalis', 'occipitofrontalis'].some(k => fullName.includes(k))) {
+          dy = 0.16 * sy;
+        }
+      } else if (src.includes('joints')) {
+        let sx = 1, sy = 1, sz = 1;
+        let curr = mesh.parent;
+        const jntRoot = MODEL_FILES['models/joints.glb']?.root;
+        while (curr && curr !== jntRoot && curr !== scene) {
+          if (curr.scale) {
+            if (curr.scale.x < 0) sx *= -1;
+            if (curr.scale.y < 0) sy *= -1;
+            if (curr.scale.z < 0) sz *= -1;
+          }
+          curr = curr.parent;
+        }
+        if (fullName.includes('costo') || fullName.includes('sterno')) {
+          dz = 0.30 * sz;
+          dx = -0.10 * sx;
+          dy = 0.04 * sy;
+        } else if (fullName.includes('vertebra') || fullName.includes('disc') || fullName.includes('sacro')) {
+          dz = -0.28 * sz;
+          dx = 0.12 * sx;
+        }
+      }
+    } else if (explodeMode === 'sidebyside') {
+      // In side-by-side mode, models are linearly separated by their roots; meshes remain anatomically cohesive
+      dx = 0; dy = 0; dz = 0;
+    } else if (explodeMode === 'radial') {
+      // 360-degree outward explosion from body center (0, 0.85, 0)
+      const centerY = 0.85;
+      const posX = mesh.parent?.position?.x || orig.x;
+      const posY = mesh.parent?.position?.y || orig.y;
+      const posZ = mesh.parent?.position?.z || orig.z;
+      const rx = posX;
+      const ry = (posY - centerY) * 0.4;
+      const rz = posZ || 0.1;
+      const len = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1.0;
+      const dist = 0.65;
+      dx = (rx / len) * dist;
+      dy = (ry / len) * dist;
+      dz = (rz / len) * dist;
+    }
+
+    mesh.userData.explodedTargetPos = new THREE.Vector3(
+      orig.x + dx,
+      orig.y + dy,
+      orig.z + dz
+    );
+  });
+}
+
+function applyExplodeAmountToMeshes(amount) {
+  if (explodeMode === 'disassembly') {
+    if (MODEL_FILES['models/muscles.glb']?.root) {
+      MODEL_FILES['models/muscles.glb'].root.position.x = -0.65 * amount;
+    }
+    if (MODEL_FILES['models/skeleton.glb']?.root) {
+      MODEL_FILES['models/skeleton.glb'].root.position.x = 0.65 * amount;
+    }
+    if (MODEL_FILES['models/joints.glb']?.root) {
+      MODEL_FILES['models/joints.glb'].root.position.x = 0.65 * amount;
+    }
+    if (MODEL_FILES['models/cardio.glb']?.root) MODEL_FILES['models/cardio.glb'].root.position.x = 0;
+    if (MODEL_FILES['models/visceral.glb']?.root) MODEL_FILES['models/visceral.glb'].root.position.x = 0;
+    if (MODEL_FILES['models/nervous.glb']?.root) MODEL_FILES['models/nervous.glb'].root.position.x = 0;
+  } else if (explodeMode === 'sidebyside') {
+    if (MODEL_FILES['models/muscles.glb']?.root) MODEL_FILES['models/muscles.glb'].root.position.x = -1.2 * amount;
+    if (MODEL_FILES['models/skeleton.glb']?.root) MODEL_FILES['models/skeleton.glb'].root.position.x = -0.3 * amount;
+    if (MODEL_FILES['models/joints.glb']?.root) MODEL_FILES['models/joints.glb'].root.position.x = -0.3 * amount;
+    if (MODEL_FILES['models/cardio.glb']?.root) MODEL_FILES['models/cardio.glb'].root.position.x = 0.6 * amount;
+    if (MODEL_FILES['models/visceral.glb']?.root) MODEL_FILES['models/visceral.glb'].root.position.x = 1.5 * amount;
+    if (MODEL_FILES['models/nervous.glb']?.root) MODEL_FILES['models/nervous.glb'].root.position.x = 2.4 * amount;
+  } else {
+    // Radial: Reset roots to 0 so all meshes radiate outward from common center
+    ['models/skeleton.glb', 'models/joints.glb', 'models/muscles.glb', 'models/cardio.glb', 'models/visceral.glb', 'models/nervous.glb'].forEach(f => {
+      if (MODEL_FILES[f]?.root) MODEL_FILES[f].root.position.x = 0;
+    });
+  }
+
+  allMeshes.forEach(mesh => {
+    if (mesh.userData.origPos && mesh.userData.explodedTargetPos) {
+      mesh.position.lerpVectors(mesh.userData.origPos, mesh.userData.explodedTargetPos, amount);
+    }
+  });
+}
+
+function updateExplodedViewAnimation() {
+  if (isExplodeAutoPlaying) {
+    targetExplodeAmount += explodePlaySpeed * explodePlayDirection;
+    if (targetExplodeAmount >= 1.0) {
+      targetExplodeAmount = 1.0;
+      explodePlayDirection = -1;
+    } else if (targetExplodeAmount <= 0.0) {
+      targetExplodeAmount = 0.0;
+      explodePlayDirection = 1;
+    }
+    updateExplodeSliderUI(targetExplodeAmount);
+  }
+
+  if (Math.abs(currentExplodeAmount - targetExplodeAmount) > 0.002) {
+    currentExplodeAmount += (targetExplodeAmount - currentExplodeAmount) * 0.10;
+    applyExplodeAmountToMeshes(currentExplodeAmount);
+    updateExplodeSliderUI(currentExplodeAmount);
+  }
 }
 
 // ========================================================
