@@ -364,24 +364,35 @@ async function initAnatomyModels() {
     dismissOverlay();
   }
 
-  const queue = [
-    'models/nervous.glb',
-    'models/visceral.glb',
-    'models/joints.glb',
-    'models/muscles.glb',
-    'models/cardio.glb'
-  ];
-
-  for (let file of queue) {
-    if (!MODEL_FILES[file].loaded && !MODEL_FILES[file].loading) {
-      try {
-        await loadModelFile(file);
-      } catch (e) {
-        console.warn(`Error background loading ${file}:`, e);
+  // Non-blocking on-demand loading: startup reveals instantly, background queue preloads gently during idle time
+  const idlePreload = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
+  idlePreload(() => {
+    const queue = [
+      'models/muscles.glb',
+      'models/joints.glb',
+      'models/visceral.glb',
+      'models/nervous.glb',
+      'models/cardio.glb'
+    ];
+    let idx = 0;
+    function loadNext() {
+      if (idx >= queue.length) {
+        console.log("All anatomical models cached!");
+        return;
+      }
+      const file = queue[idx++];
+      if (!MODEL_FILES[file].loaded && !MODEL_FILES[file].loading) {
+        loadModelFile(file).then(() => {
+          setTimeout(loadNext, 500); // 500ms breather between models to keep UI 60fps
+        }).catch(() => {
+          setTimeout(loadNext, 500);
+        });
+      } else {
+        loadNext();
       }
     }
-  }
-  console.log("All anatomical models loaded and cached!");
+    loadNext();
+  });
 }
 
 // ========================================================
